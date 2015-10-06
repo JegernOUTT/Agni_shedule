@@ -18,9 +18,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.example.hellb.agni.R;
-import com.example.hellb.agni.serializible.SerializableData;
+import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.Faculty;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, Runnable,
@@ -30,7 +30,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     private ArrayAdapter<String> arrayAdapterFac, arrayAdapterGr;
     private Object facultyResult, groupResult;
     private EditText editText;
-    private SerializableData serializableData;
+    private SerializableScheduleData serializableScheduleData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +47,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spFaculty.setOnItemSelectedListener(this);
         spGroup.setOnItemSelectedListener(this);
 
-        serializableData = SerializableData.getInstance();
+        serializableScheduleData = SerializableScheduleData.getInstance();
 
         new Thread(this).start();
     }
@@ -77,12 +77,12 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
     private void loadSpinners()
     {
-        Collection<String> collection = serializableData.getScheduleInputParams().values();
-        String [] arr = new String[collection.size()];
-        Iterator<String> stringIterator = collection.iterator();
-        for (int i = 0; i < collection.size(); ++i)
+        String[] arr = new String[serializableScheduleData.getFaculties().size()];
+        Iterator<Faculty> facultyIterator = serializableScheduleData.getFaculties().iterator();
+
+        for (int i = 0; i < serializableScheduleData.getFaculties().size(); ++i)
         {
-            arr[i] = stringIterator.next();
+            arr[i] = facultyIterator.next().toString();
         }
         arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
                 android.R.layout.simple_spinner_item, arr);
@@ -113,13 +113,13 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     public void run() {
         while (true)
         {
-            if (serializableData.isRegisterParamReady)
+            if (serializableScheduleData.isRegisterParamReady)
             {
                 loadSpinners();
                 break;
             }
             try {
-                Thread.sleep(200);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

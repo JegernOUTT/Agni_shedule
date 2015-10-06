@@ -3,7 +3,8 @@ package com.example.hellb.agni.connection;
 import android.content.Context;
 import android.support.annotation.Nullable;
 
-import com.example.hellb.agni.serializible.SerializableData;
+import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 
@@ -22,11 +23,11 @@ import java.io.InputStreamReader;
 public class AgniWebConnectionForSchedule implements FutureCallback<InputStream> {
     private String sheduleUrl = "http://is.agni-rt.ru:8080/schedule/";
     private Context context;
-    private SerializableData serializableData;
+    private SerializableScheduleData serializableScheduleData;
 
     public AgniWebConnectionForSchedule(Context con)
     {
-        serializableData = SerializableData.getInstance();
+        serializableScheduleData = SerializableScheduleData.getInstance();
         context = con;
         Ion.with(con)
             .load(sheduleUrl)
@@ -47,9 +48,9 @@ public class AgniWebConnectionForSchedule implements FutureCallback<InputStream>
                 int start = str.indexOf("faculty_id.value='") + 18;
                 int end = str.indexOf("';", start);
 
-                serializableData.getScheduleInputParams().put(Integer.parseInt(str.substring(start, end)), link.text());
+                serializableScheduleData.addFaculty(new Faculty(Integer.parseInt(str.substring(start, end)), link.text()));
             }
-            serializableData.isRegisterParamReady = true;
+            serializableScheduleData.isRegisterParamReady = true;
         }
     }
 
