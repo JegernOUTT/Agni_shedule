@@ -24,7 +24,14 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        NavigationCreate();
+
+        AgniWebConnectionForSchedule agniWebConnectionForSchedule = new AgniWebConnectionForSchedule(getApplicationContext());
+    }
+
+    private void NavigationCreate() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -44,8 +51,6 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        AgniWebConnectionForSchedule agniWebConnectionForSchedule = new AgniWebConnectionForSchedule(getApplicationContext());
     }
 
     @Override
