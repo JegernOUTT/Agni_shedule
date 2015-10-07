@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.util.Pair;
 
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
@@ -16,32 +17,31 @@ import org.jsoup.select.Elements;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by hellb on 06.10.2015.
  */
 public class Faculty implements DataProcess, FutureCallback<InputStream> {
-    public static String postDataName = "faculty_id";
+    private static String postDataName = "faculty_id";
     private Integer postData;
     private String facultyName;
-    public List<Course> courses;
-    public volatile boolean isRegisterParamReady;
+    private Context context;
 
-    public Faculty(Integer post, String faculty)
-    {
+    public ArrayList<Course> getCourses() {
+        return courses;
+    }
+
+    private ArrayList<Course> courses;
+    public volatile boolean isLoaded;
+
+    public Faculty(Integer post, String faculty) {
         postData = post;
         facultyName = faculty;
         courses = new ArrayList<Course>();
+        isLoaded = false;
     }
 
-    @Override
-    public String toString() {
-        return facultyName;
-    }
-
-    public String[] getStringRepresentationCourses()
-    {
+    public String[] getStringRepresentationCourses() {
         String[] strings = new String[courses.size()];
         Iterator<Course> courseIterator = courses.iterator();
         for (int i = 0; i < courses.size(); ++i)
@@ -52,13 +52,23 @@ public class Faculty implements DataProcess, FutureCallback<InputStream> {
         return strings;
     }
 
+    public Pair<String, Integer> getRequestData() {
+        return new Pair<String, Integer>(postDataName, postData);
+    }
+
+    public void addCourse(Course course) {
+        course.owner = this;
+        courses.add(course);
+    }
+
     @Override
-    public void processData(Context context) {
-        /*
-        * У каждого объекта Faculty есть postData
-        * В этом методе должно создаться POST запрос и после
-        * этого должен заполниться массив courses
-        * */
+    public String toString() {
+        return facultyName;
+    }
+
+    @Override
+    public void processData(Context cont) {
+        context = cont;
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
                 .setBodyParameter(postDataName, postData.toString())
@@ -86,13 +96,21 @@ public class Faculty implements DataProcess, FutureCallback<InputStream> {
                     String str = groupElement.attr("href");
                     int start = str.indexOf("sp_student.group_id.value='") + 27;
                     int end = str.indexOf("';", start);
-                    course.groups.add(new Group(Integer.parseInt(str.substring(start, end)), groupElement.text()));
+                    course.addGroup(new Group(Integer.parseInt(str.substring(start, end)), groupElement.text()));
                 }
                 ++i;
-                courses.add(course);
+                addCourse(course);
             }
 
-            this.isRegisterParamReady = true;
+            isLoaded = true;
+        }
+
+        for (Course course: courses)
+        {
+            for (Group group: course.getGroups())
+            {
+                group.processData(context);
+            }
         }
     }
 }

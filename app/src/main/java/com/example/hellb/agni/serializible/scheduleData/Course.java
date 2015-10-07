@@ -8,14 +8,22 @@ import java.util.List;
  * Created by hellb on 06.10.2015.
  */
 public class Course {
-    public List<Group> groups;
-    public String courseName;
+    public List<Group> getGroups() {
+        return groups;
+    }
+
+    private List<Group> groups;
+    private String courseName;
     public Faculty owner;
 
-    Course(String name)
-    {
+    Course(String name) {
         courseName = name;
         groups = new ArrayList<Group>();
+    }
+
+    public void addGroup(Group group) {
+        group.owner = this;
+        groups.add(group);
     }
 
     @Override

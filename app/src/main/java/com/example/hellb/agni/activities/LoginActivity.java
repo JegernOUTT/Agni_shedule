@@ -21,9 +21,6 @@ import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
-import com.example.hellb.agni.serializible.scheduleData.Group;
-
-import java.util.Iterator;
 
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, Runnable,
         NavigationView.OnNavigationItemSelectedListener {
@@ -81,15 +78,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         navigationView.setNavigationItemSelectedListener(this);
     }
 
-    private void loadSpinnerFaculty()
-    {
-        String[] arr = new String[serializableScheduleData.getFaculties().size()];
-        Iterator<Faculty> facultyIterator = serializableScheduleData.getFaculties().iterator();
+    private void loadSpinnerFaculty() {
+        String[] arr = serializableScheduleData.getStringRepresentationFaculties();
 
-        for (int i = 0; i < serializableScheduleData.getFaculties().size(); ++i)
-        {
-            arr[i] = facultyIterator.next().toString();
-        }
         arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
                 android.R.layout.simple_spinner_item, arr);
         spFaculty.setAdapter(arrayAdapterFac);
@@ -98,32 +89,19 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spFaculty.setEnabled(true);
     }
 
-    void loadSpinnerCourse(Faculty faculty)
-    {
-        String[] arr = new String[faculty.courses.size()];
-        Iterator<Course> courseIterator = faculty.courses.iterator();
+    private void loadSpinnerCourse(Faculty faculty) {
+        String[] arr =  faculty.getStringRepresentationCourses();
 
-        for (int i = 0; i < faculty.courses.size(); ++i)
-        {
-            arr[i] = courseIterator.next().toString();
-        }
         arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
-                android.R.layout.simple_spinner_item, arr);
+                android.R.layout.simple_spinner_dropdown_item, arr);
         spCourse.setAdapter(arrayAdapterFac);
         spCourse.setPrompt("Выберите курс...");
 
         spCourse.setEnabled(true);
     }
 
-    void loadSpinnerGroup(Course course)
-    {
-        String[] arr = new String[course.groups.size()];
-        Iterator<Group> groupIterator = course.groups.iterator();
-
-        for (int i = 0; i < course.groups.size(); ++i)
-        {
-            arr[i] = groupIterator.next().toString();
-        }
+    private void loadSpinnerGroup(Course course) {
+        String[] arr = course.getStringRepresentationGroups();
         arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
                 android.R.layout.simple_spinner_item, arr);
         spGroup.setAdapter(arrayAdapterFac);
@@ -151,7 +129,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
                 {
                     if (faculty.toString().equals(spFaculty.getSelectedItem()))
                     {
-                        for (Course course: faculty.courses)
+                        for (Course course: faculty.getCourses())
                         {
                             if (course.toString().equals(spCourse.getSelectedItem()))
                             {
@@ -184,7 +162,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
             boolean isGroupReady = true;
             for(Faculty faculty: serializableScheduleData.getFaculties())
             {
-                if (! faculty.isRegisterParamReady)
+                if (! faculty.isLoaded)
                     isGroupReady = false;
             }
 

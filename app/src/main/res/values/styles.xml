@@ -6,16 +6,17 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:spinnerDropDownItemStyle">@style/mySpinnerItemStyle</item>
     </style>
-    <style name="SpinnerDefaultTheme" parent="android:style/Widget.ListView.DropDown">
-        <item name="android:textColor">#F8F7F6</item>
-        <item name="android:cacheColorHint">#414141</item>
-        <item name="android:divider">#2B2B2B</item>
-        <item name="android:dividerHeight">1dp</item>
+
+    <style name="mySpinnerItemStyle" parent="Widget.AppCompat.Spinner">
+        <item name="android:textColor">@color/my_spinner_text_color</item>
     </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:spinnerDropDownItemStyle">@style/mySpinnerItemStyle</item>
     </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
