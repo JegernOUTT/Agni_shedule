@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Pair;
 
 import com.example.hellb.agni.serializible.DataProcess;
@@ -64,22 +65,29 @@ public class Group implements DataProcess, FutureCallback<InputStream> {
 
     @Override
     public void onCompleted(Exception e, InputStream result) {
-        if (result != null)
+        try
         {
-            Document document = Jsoup.parse(InputStreamToStringWin1251.toStr(result));
-            Elements optionElements = document.getElementsByTag("select")
-                    .last()
-                    .getElementsByTag("option");
-
-            for (Element element: optionElements)
+            if (result != null)
             {
-                Week week = new Week(Integer.parseInt(element.val()), element.text());
-                if (element.attr("selected").indexOf("selected") == 0)
-                    week.isCurrent = true;
-                addWeek(week);
-            }
+                Document document = Jsoup.parse(InputStreamToStringWin1251.toStr(result));
+                Elements optionElements = document.getElementsByTag("select")
+                        .last()
+                        .getElementsByTag("option");
 
-            isLoaded = true;
+                for (Element element: optionElements)
+                {
+                    Week week = new Week(Integer.parseInt(element.val()), element.text());
+                    if (element.attr("selected").indexOf("selected") == 0)
+                        week.isCurrent = true;
+                    addWeek(week);
+                }
+
+                isLoaded = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.e("Parce Error", ex.getMessage());
         }
     }
 }

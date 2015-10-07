@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Pair;
 
 import com.example.hellb.agni.serializible.DataProcess;
@@ -36,6 +37,13 @@ public class Week implements DataProcess, FutureCallback<InputStream> {
 
     @Override
     public void onCompleted(Exception e, InputStream result) {
+        try
+        {
 
+        }
+        catch (Exception ex)
+        {
+            Log.e("Parce Error", ex.getMessage());
+        }
     }
 }

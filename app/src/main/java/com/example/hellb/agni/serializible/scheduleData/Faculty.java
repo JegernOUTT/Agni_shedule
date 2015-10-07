@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Pair;
 
 import com.example.hellb.agni.serializible.DataProcess;
@@ -78,39 +79,46 @@ public class Faculty implements DataProcess, FutureCallback<InputStream> {
 
     @Override
     public void onCompleted(Exception e, InputStream result) {
-        if (result != null)
+        try
         {
-            Document document = Jsoup.parse(InputStreamToStringWin1251.toStr(result));
-            Elements elementsByTag = document
-                    .getElementsByTag("table")
-                    .last()
-                    .getElementsByTag("td");
-
-            Iterator<Element> elementIterator = elementsByTag.iterator();
-            for (int i = 0; i < elementsByTag.size(); ++i) {
-                Course course = new Course(elementIterator.next().text());
-                Elements groups = elementIterator.next().getElementsByTag("a");
-
-                for (Element groupElement: groups)
-                {
-                    String str = groupElement.attr("href");
-                    int start = str.indexOf("sp_student.group_id.value='") + 27;
-                    int end = str.indexOf("';", start);
-                    course.addGroup(new Group(Integer.parseInt(str.substring(start, end)), groupElement.text()));
-                }
-                ++i;
-                addCourse(course);
-            }
-
-            isLoaded = true;
-        }
-
-        for (Course course: courses)
-        {
-            for (Group group: course.getGroups())
+            if (result != null)
             {
-                group.processData(context);
+                Document document = Jsoup.parse(InputStreamToStringWin1251.toStr(result));
+                Elements elementsByTag = document
+                        .getElementsByTag("table")
+                        .last()
+                        .getElementsByTag("td");
+
+                Iterator<Element> elementIterator = elementsByTag.iterator();
+                for (int i = 0; i < elementsByTag.size(); ++i) {
+                    Course course = new Course(elementIterator.next().text());
+                    Elements groups = elementIterator.next().getElementsByTag("a");
+
+                    for (Element groupElement: groups)
+                    {
+                        String str = groupElement.attr("href");
+                        int start = str.indexOf("sp_student.group_id.value='") + 27;
+                        int end = str.indexOf("';", start);
+                        course.addGroup(new Group(Integer.parseInt(str.substring(start, end)), groupElement.text()));
+                    }
+                    ++i;
+                    addCourse(course);
+                }
+
+                isLoaded = true;
             }
+
+            for (Course course: courses)
+            {
+                for (Group group: course.getGroups())
+                {
+                    group.processData(context);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.e("Parce Error", ex.getMessage());
         }
     }
 }

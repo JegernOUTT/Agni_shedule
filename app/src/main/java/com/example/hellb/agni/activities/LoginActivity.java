@@ -145,7 +145,17 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
+        switch (parent.getId()) {
+            case R.id.spFaculty:
+                spCourse.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                        android.R.layout.simple_spinner_dropdown_item, new String[]{}));
+                break;
 
+            case R.id.spCourse:
+                spGroup.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                        android.R.layout.simple_spinner_dropdown_item, new String[]{}));
+                break;
+        }
     }
 
     @Override
