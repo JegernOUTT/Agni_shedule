@@ -7,6 +7,12 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+    <style name="SpinnerDefaultTheme" parent="android:style/Widget.ListView.DropDown">
+        <item name="android:textColor">#F8F7F6</item>
+        <item name="android:cacheColorHint">#414141</item>
+        <item name="android:divider">#2B2B2B</item>
+        <item name="android:dividerHeight">1dp</item>
+    </style>
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

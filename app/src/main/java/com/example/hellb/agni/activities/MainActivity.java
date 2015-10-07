@@ -15,7 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.hellb.agni.R;
-import com.example.hellb.agni.connection.AgniWebConnectionForSchedule;
+import com.example.hellb.agni.serializible.SerializableScheduleData;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -27,7 +27,8 @@ public class MainActivity extends AppCompatActivity
 
         NavigationCreate();
 
-        AgniWebConnectionForSchedule agniWebConnectionForSchedule = new AgniWebConnectionForSchedule(getApplicationContext());
+        SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance(getApplicationContext());
+        serializableScheduleData.processData(getApplicationContext());
     }
 
     private void NavigationCreate() {

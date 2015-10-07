@@ -19,16 +19,18 @@ import android.widget.Spinner;
 
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
+import com.example.hellb.agni.serializible.scheduleData.Group;
 
 import java.util.Iterator;
 
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, Runnable,
         NavigationView.OnNavigationItemSelectedListener {
 
-    private Spinner spFaculty, spGroup;
+    private volatile boolean isGroupsReady;
+    private Spinner spFaculty, spGroup, spCourse;
     private ArrayAdapter<String> arrayAdapterFac, arrayAdapterGr;
-    private Object facultyResult, groupResult;
     private EditText editText;
     private SerializableScheduleData serializableScheduleData;
 
@@ -41,13 +43,17 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
         spFaculty = (Spinner) findViewById(R.id.spFaculty);
         spGroup = (Spinner) findViewById(R.id.spGroup);
+        spCourse = (Spinner) findViewById(R.id.spCourse);
 
+        spFaculty.setEnabled(false);
         spGroup.setEnabled(false);
+        spCourse.setEnabled(false);
 
         spFaculty.setOnItemSelectedListener(this);
+        spCourse.setOnItemSelectedListener(this);
         spGroup.setOnItemSelectedListener(this);
 
-        serializableScheduleData = SerializableScheduleData.getInstance();
+        serializableScheduleData = SerializableScheduleData.getInstance(getApplicationContext());
 
         new Thread(this).start();
     }
@@ -75,7 +81,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         navigationView.setNavigationItemSelectedListener(this);
     }
 
-    private void loadSpinners()
+    private void loadSpinnerFaculty()
     {
         String[] arr = new String[serializableScheduleData.getFaculties().size()];
         Iterator<Faculty> facultyIterator = serializableScheduleData.getFaculties().iterator();
@@ -89,18 +95,73 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spFaculty.setAdapter(arrayAdapterFac);
         spFaculty.setPrompt("Выберите факультет...");
 
+        spFaculty.setEnabled(true);
+    }
+
+    void loadSpinnerCourse(Faculty faculty)
+    {
+        String[] arr = new String[faculty.courses.size()];
+        Iterator<Course> courseIterator = faculty.courses.iterator();
+
+        for (int i = 0; i < faculty.courses.size(); ++i)
+        {
+            arr[i] = courseIterator.next().toString();
+        }
+        arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
+                android.R.layout.simple_spinner_item, arr);
+        spCourse.setAdapter(arrayAdapterFac);
+        spCourse.setPrompt("Выберите курс...");
+
+        spCourse.setEnabled(true);
+    }
+
+    void loadSpinnerGroup(Course course)
+    {
+        String[] arr = new String[course.groups.size()];
+        Iterator<Group> groupIterator = course.groups.iterator();
+
+        for (int i = 0; i < course.groups.size(); ++i)
+        {
+            arr[i] = groupIterator.next().toString();
+        }
+        arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
+                android.R.layout.simple_spinner_item, arr);
+        spGroup.setAdapter(arrayAdapterFac);
+        spGroup.setPrompt("Выберите группу...");
+
         spGroup.setEnabled(true);
     }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (parent.getAdapter().equals(arrayAdapterFac))
+        switch (parent.getId())
         {
+            case R.id.spFaculty:
+                for (Faculty faculty: serializableScheduleData.getFaculties())
+                {
+                    if (faculty.toString().equals(spFaculty.getSelectedItem()))
+                    {
+                        loadSpinnerCourse(faculty);
+                    }
+                }
 
-        }
-        else if (parent.getAdapter().equals(arrayAdapterGr))
-        {
-            groupResult = parent.getItemAtPosition(position);
+                break;
+            case R.id.spCourse:
+                for (Faculty faculty: serializableScheduleData.getFaculties())
+                {
+                    if (faculty.toString().equals(spFaculty.getSelectedItem()))
+                    {
+                        for (Course course: faculty.courses)
+                        {
+                            if (course.toString().equals(spCourse.getSelectedItem()))
+                            {
+                                loadSpinnerGroup(course);
+                            }
+                        }
+                    }
+                }
+
+                break;
         }
     }
 
@@ -111,13 +172,28 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
     @Override
     public void run() {
+        boolean isLoadedFaculty = false;
         while (true)
         {
-            if (serializableScheduleData.isRegisterParamReady)
+            if (serializableScheduleData.isRegisterParamReady && !isLoadedFaculty)
             {
-                loadSpinners();
+                loadSpinnerFaculty();
+                isLoadedFaculty = true;
+            }
+
+            boolean isGroupReady = true;
+            for(Faculty faculty: serializableScheduleData.getFaculties())
+            {
+                if (! faculty.isRegisterParamReady)
+                    isGroupReady = false;
+            }
+
+            if (isGroupReady)
+            {
+                isGroupsReady = true;
                 break;
             }
+
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {

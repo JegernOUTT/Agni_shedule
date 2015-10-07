@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:weightSum="1"
-        android:id="@+id/linearLayout">
+        android:id="@+id/linearLayout1">
 
         <TextView
             android:layout_width="120dp"
@@ -28,6 +28,29 @@
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:id="@+id/spFaculty"
+        android:spinnerMode="dropdown" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_below="@+id/linearLayout1"
+        android:id="@+id/linearLayout2"
+        android:layout_alignParentStart="true">
+
+        <TextView
+            android:layout_width="120dp"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Курс:"
+            android:id="@+id/tvCourse" />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:id="@+id/spCourse"
+            android:layout_weight="1"
             android:spinnerMode="dropdown" />
     </LinearLayout>
 
@@ -35,7 +58,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:layout_below="@+id/linearLayout"
+        android:layout_below="@+id/linearLayout2"
         android:layout_alignParentStart="true">
 
         <TextView

@@ -10,6 +10,7 @@ import java.util.List;
 public class Course {
     public List<Group> groups;
     public String courseName;
+    public Faculty owner;
 
     Course(String name)
     {
