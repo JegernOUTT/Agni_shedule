@@ -31,6 +31,11 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
     private String groupName;
     private ArrayList<Week> weeks;
     public transient Course owner;
+
+    public void setIsLoaded(boolean isLoaded) {
+        this.isLoaded = isLoaded;
+    }
+
     private volatile boolean isLoaded;
     public boolean isLoaded() {
         return isLoaded;
@@ -53,6 +58,15 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
     public void addWeek(Week week) {
         week.owner = this;
         weeks.add(week);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        Group group = (Group) o;
+        if (group.groupName.equals(this.groupName) &&
+                group.postData == this.postData)
+            return true;
+        else return false;
     }
 
     @Override

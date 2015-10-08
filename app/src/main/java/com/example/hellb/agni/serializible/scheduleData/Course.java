@@ -29,6 +29,14 @@ public class Course implements Serializable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        Course course = (Course) o;
+        if (course.courseName.equals(this.courseName))
+            return true;
+        else return false;
+    }
+
+    @Override
     public String toString() {
         return  courseName;
     }

@@ -49,8 +49,7 @@ public class DataGetStack implements Observer, Runnable {
         dataProcessStack.addLast(dataProcess);
     }
 
-    public boolean isReady()
-    {
+    public boolean isReady() {
         if (SerializableScheduleData.getInstance().isLoaded() && dataProcessStack.size() == 0)
         {
             return true;

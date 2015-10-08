@@ -1,5 +1,6 @@
 package com.example.hellb.agni.activities;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -27,9 +28,13 @@ import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.example.hellb.agni.serializible.scheduleData.Group;
 import com.example.hellb.agni.serializible.scheduleData.Week;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener,
         NavigationView.OnNavigationItemSelectedListener {
 
+    static String currentSettingsFileName = "currentSettings.dat";
     private volatile boolean isGroupsReady;
     private Spinner spFaculty, spGroup, spCourse;
     private ArrayAdapter<String> arrayAdapterFac, arrayAdapterGr;
@@ -58,6 +63,11 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         serializableScheduleData = SerializableScheduleData.getInstance();
 
         loadSpinnerFaculty();
+
+        if (CurrentSettings.getInstance().isLoaded)
+        {
+
+        }
     }
 
     private void NavigationCreate() {
@@ -125,8 +135,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
     public void btnSaveClick(View view) {
         if (spFaculty.getSelectedItem() == null ||
-                spCourse.getSelectedItem() == null ||
-                spGroup.getSelectedItem() == null)
+                spCourse.getSelectedItem().toString().equals("Нет данных") ||
+                spGroup.getSelectedItem().toString().equals("Нет данных"))
         {
             Toast.makeText(getApplicationContext(), "Вы должны выбрать все параметры", Toast.LENGTH_LONG).show();
         }
@@ -139,15 +149,31 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
             CurrentSettings.getInstance().group = (Group)
                     CurrentSettings.getInstance().course.getObjectByString((String) spGroup.getSelectedItem());
 
+            CurrentSettings.getInstance().isLoaded = true;
+
             for (Week week: CurrentSettings.getInstance().group.getWeeks())
             {
                 if (week.isCurrent)
                     CurrentSettings.getInstance().week = week;
             }
-            Log.d("Current settings", CurrentSettings.getInstance().faculty.toString());
-            Log.d("Current settings", CurrentSettings.getInstance().course.toString());
-            Log.d("Current settings", CurrentSettings.getInstance().group.toString());
-            Log.d("Current settings", CurrentSettings.getInstance().week.toString());
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try
+                    {
+                        FileOutputStream fos = getApplicationContext().openFileOutput(currentSettingsFileName, Context.MODE_PRIVATE);
+                        ObjectOutputStream os = new ObjectOutputStream(fos);
+                        os.writeObject(CurrentSettings.getInstance());
+                        os.close();
+                        fos.close();
+                    }
+                    catch (Exception exception)
+                    {
+                        Log.d("Exception: ", exception.getMessage());
+                    }
+                }
+            }).start();
         }
     }
 

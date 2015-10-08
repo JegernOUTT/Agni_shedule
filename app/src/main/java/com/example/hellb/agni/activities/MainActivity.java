@@ -20,7 +20,12 @@ import android.widget.ProgressBar;
 
 import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.R;
+import com.example.hellb.agni.serializible.CurrentSettings;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.Course;
+import com.example.hellb.agni.serializible.scheduleData.Faculty;
+import com.example.hellb.agni.serializible.scheduleData.Group;
+import com.example.hellb.agni.serializible.scheduleData.Week;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,25 +36,26 @@ import java.io.ObjectOutputStream;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private ProgressBar progressBar;
-    static String fileName = "settings.dat";
+    static String modelFileName = "model.dat";
+    static String currentSettingsFileName = "currentSettings.dat";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-
         NavigationCreate();
+
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         loadModel();
     }
 
-    private void loadModel() {
+    private void loadCurrentSettings() {
         boolean isThereFile = false;
 
         try {
-            FileReader reader = new FileReader(getApplicationContext().getFilesDir().toString() + '/' + fileName);
+            FileReader reader = new FileReader(getApplicationContext().getFilesDir().toString() + '/' + currentSettingsFileName);
             reader.close();
             isThereFile = true;
         } catch (Exception e) {
@@ -57,108 +63,198 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (!isThereFile) {
-            DataGetStack.getInstance(10, getApplicationContext())
-                    .addTask(SerializableScheduleData.getInstance());
-
-            new AsyncTask<Boolean, Void, Void>() {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+        else
+        {
+            new AsyncTask<Void, Void, Void>(){
                 @Override
                 protected void onPreExecute() {
                     super.onPreExecute();
-                    progressBar.setVisibility(View.VISIBLE);
                 }
 
                 @Override
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
-
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-
-                            try
-                            {
-                                FileOutputStream fos = getApplicationContext().openFileOutput(fileName, Context.MODE_PRIVATE);
-                                ObjectOutputStream os = new ObjectOutputStream(fos);
-                                os.writeObject(SerializableScheduleData.getInstance());
-                                os.close();
-                                fos.close();
-                            }
-                            catch (Exception exception)
-                            {
-                                Log.d("Exception: ", exception.getMessage());
-                            }
-
-                        }
-                    });
-                    thread.start();
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    progressBar.setVisibility(View.GONE);
                 }
 
                 @Override
-                protected Void doInBackground(Boolean... params) {
-                    while (true)
-                    {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        if (DataGetStack.getInstance().isReady())
-                        {
-                            SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
-                            serializableScheduleData.isLoaded();
-                            break;
-                        }
-                    }
-                    return null;
-                }
-            }
-                    .execute();
-        }
-        else
-        {
-            new AsyncTask<Boolean, Void, Void>() {
-                @Override
-                protected Void doInBackground(Boolean... params) {
+                protected Void doInBackground(Void... params) {
                     FileInputStream fis = null;
                     try {
-                        fis = getApplicationContext().openFileInput(fileName);
+                        fis = getApplicationContext().openFileInput(currentSettingsFileName);
                         ObjectInputStream is = new ObjectInputStream(fis);
-                        SerializableScheduleData.setInstance((SerializableScheduleData) is.readObject());
+                        CurrentSettings.setInstance((CurrentSettings) is.readObject());
                         is.close();
                         fis.close();
                     } catch (Exception exception) {
                         Log.d("Exception: ", exception.getMessage());
                     }
+
+                    implementRealModel();
+
+
                     return null;
                 }
 
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    progressBar.setVisibility(View.VISIBLE);
+                private void implementRealModel() {
+                    for (Faculty faculty: SerializableScheduleData.getInstance().getFaculties())
+                    {
+                        if (faculty.equals(CurrentSettings.getInstance().faculty))
+                        {
+                            CurrentSettings.getInstance().faculty = faculty;
+                        }
+                    }
+
+                    for (Course course: CurrentSettings.getInstance().faculty.getCourses())
+                    {
+                        if (course.equals(CurrentSettings.getInstance().course))
+                        {
+                            CurrentSettings.getInstance().course = course;
+                        }
+                    }
+
+                    for (Group group: CurrentSettings.getInstance().course.getGroups())
+                    {
+                        if (group.equals(CurrentSettings.getInstance().group))
+                        {
+                            CurrentSettings.getInstance().group = group;
+                        }
+                    }
+
+                    for (Week week: CurrentSettings.getInstance().group.getWeeks())
+                    {
+                        if (week.equals(CurrentSettings.getInstance().week))
+                        {
+                            CurrentSettings.getInstance().week = week;
+                        }
+                    }
+
+                    CurrentSettings.getInstance().isLoaded = true;
                 }
 
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    super.onPostExecute(aVoid);
-                    progressBar.setVisibility(View.GONE);
-                }
-            }
-                    .execute();
-
+            }.execute();
         }
+    }
+
+    private void loadModel() {
+        boolean isThereFile = false;
+
+        try {
+            FileReader reader = new FileReader(getApplicationContext().getFilesDir().toString() + '/' + modelFileName);
+            reader.close();
+            isThereFile = true;
+        } catch (Exception e) {
+            isThereFile = false;
+        }
+
+        if (!isThereFile) {
+            updateModelFromWeb();
+        }
+        else
+        {
+            updateModelFromDeserialization();
+        }
+    }
+
+    private void updateModelFromDeserialization() {
+        new AsyncTask<Boolean, Void, Void>() {
+            @Override
+            protected Void doInBackground(Boolean... params) {
+                FileInputStream fis = null;
+                try {
+                    fis = getApplicationContext().openFileInput(modelFileName);
+                    ObjectInputStream is = new ObjectInputStream(fis);
+                    SerializableScheduleData.setInstance((SerializableScheduleData) is.readObject());
+                    is.close();
+                    fis.close();
+                } catch (Exception exception) {
+                    Log.d("Exception: ", exception.getMessage());
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                progressBar.setVisibility(View.GONE);
+                loadCurrentSettings();
+            }
+        }
+                .execute();
+    }
+
+    private void updateModelFromWeb() {
+        DataGetStack.getInstance(10, getApplicationContext())
+                .addTask(SerializableScheduleData.getInstance());
+
+        new AsyncTask<Boolean, Void, Void>() {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        try
+                        {
+                            FileOutputStream fos = getApplicationContext().openFileOutput(modelFileName, Context.MODE_PRIVATE);
+                            ObjectOutputStream os = new ObjectOutputStream(fos);
+                            os.writeObject(SerializableScheduleData.getInstance());
+                            os.close();
+                            fos.close();
+                        }
+                        catch (Exception exception)
+                        {
+                            Log.d("Exception: ", exception.getMessage());
+                        }
+
+                    }
+                }).start();
+                progressBar.setVisibility(View.GONE);
+                loadCurrentSettings();
+            }
+
+            @Override
+            protected Void doInBackground(Boolean... params) {
+                while (true)
+                {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (DataGetStack.getInstance().isReady())
+                    {
+                        SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
+                        serializableScheduleData.isLoaded();
+                        break;
+                    }
+                }
+                return null;
+            }
+        }
+                .execute();
     }
 
     private void NavigationCreate() {
@@ -228,6 +324,10 @@ public class MainActivity extends AppCompatActivity
         else if (id == R.id.nav_schedule) {
 
         }
+
+        item.setChecked(true);
+        item.setEnabled(false);
+        setTitle(item.getTitle());
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

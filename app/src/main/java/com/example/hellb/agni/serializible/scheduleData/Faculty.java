@@ -37,21 +37,40 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
     }
 
     private ArrayList<Course> courses;
-    public boolean isLoaded() {
-        boolean isLoaded = true;
 
+    @Override
+    public boolean equals(Object o) {
+        Faculty faculty = (Faculty) o;
+        if (faculty.postData == this.postData &&
+                faculty.facultyName.equals(this.facultyName))
+            return true;
+        else return false;
+    }
+
+    public boolean isLoaded() {
         for (Course course: courses)
         {
             for (Group group: course.getGroups())
             {
                 if (! group.isLoaded())
                 {
-                    isLoaded = false;
+                    return false;
                 }
             }
         }
 
-        return isLoaded;
+        if (courses.size() == 0)
+            return false;
+
+        for (Course course: courses)
+        {
+            if (course.getGroups().size() == 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public Faculty(Integer post, String faculty) {
@@ -132,6 +151,8 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
                 }
             }
 
+            checkEmptyCourses();
+
             setChanged();
             notifyObservers(this);
             deleteObservers();
@@ -140,6 +161,27 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
         {
             Log.e("Parce Error", ex.getMessage());
             deleteObservers();
+        }
+    }
+
+    private void checkEmptyCourses() {
+        if (courses.size() == 0)
+        {
+            Course course = new Course("Нет данных");
+            Group group = new Group(Integer.MAX_VALUE, "Нет данных");
+            group.setIsLoaded(true);
+            course.addGroup(group);
+            courses.add(course);
+        }
+
+        for (Course course: courses)
+        {
+            if (course.getGroups().size() == 0)
+            {
+                Group group = new Group(Integer.MAX_VALUE, "Нет данных");
+                group.setIsLoaded(true);
+                course.addGroup(group);
+            }
         }
     }
 

@@ -40,6 +40,15 @@ public class Week extends Observable implements DataProcess, FutureCallback<Inpu
     }
 
     @Override
+    public boolean equals(Object o) {
+        Week week = (Week) o;
+        if (week.weekName.equals(this.weekName) &&
+                week.postData == this.postData)
+            return true;
+        else return false;
+    }
+
+    @Override
     public String toString() {
         return weekName;
     }

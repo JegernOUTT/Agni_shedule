@@ -29,19 +29,18 @@ public class SerializableScheduleData extends Observable implements DataProcess,
 
     private static SerializableScheduleData object;
     public boolean isLoaded() {
-        boolean isLoaded = true;
         for (Faculty faculty: faculties)
         {
             if (! faculty.isLoaded())
             {
-                isLoaded = false;
+                return false;
             }
         }
 
         if (faculties.size() == 0)
             return false;
 
-        return  isLoaded;
+        return  true;
     };
 
     private ArrayList<Faculty> faculties;
