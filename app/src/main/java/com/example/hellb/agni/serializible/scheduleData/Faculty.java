@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
@@ -17,6 +18,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Observable;
@@ -25,12 +27,10 @@ import java.util.Observer;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Faculty extends Observable implements DataProcess, FutureCallback<InputStream> {
+public class Faculty extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable {
     private static String postDataName = "faculty_id";
     private Integer postData;
     private String facultyName;
-    private Context context;
-    DataGetStack dataGetStack = DataGetStack.getInstance();
 
     public ArrayList<Course> getCourses() {
         return courses;
@@ -86,8 +86,7 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
     }
 
     @Override
-    public void processData(Context cont,  Observer observer) {
-        context = cont;
+    public void processData(Context context,  Observer observer) {
         addObserver(observer);
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
@@ -129,7 +128,7 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
             {
                 for (Group group: course.getGroups())
                 {
-                    dataGetStack.addTask(group);
+                    DataGetStack.getInstance().addTask(group);
                 }
             }
 
@@ -142,5 +141,17 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
             Log.e("Parce Error", ex.getMessage());
             deleteObservers();
         }
+    }
+
+    @Nullable
+    public Object getObjectByString(String name) {
+        for (Course course: courses)
+        {
+            if (course.toString().equals(name))
+            {
+                return course;
+            }
+        }
+        return null;
     }
 }

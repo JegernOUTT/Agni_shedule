@@ -1,5 +1,6 @@
 package com.example.hellb.agni.activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,9 +22,16 @@ import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private ProgressBar progressBar;
+    static String fileName = "settings.dat";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,43 +42,123 @@ public class MainActivity extends AppCompatActivity
 
         NavigationCreate();
 
-        DataGetStack.getInstance(10, getApplicationContext())
-                .addTask(SerializableScheduleData.getInstance());
+        loadModel();
+    }
 
-        new AsyncTask<Boolean, Void, Void>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                progressBar.setVisibility(View.VISIBLE);
-            }
+    private void loadModel() {
+        boolean isThereFile = false;
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                progressBar.setVisibility(View.GONE);
-            }
+        try {
+            FileReader reader = new FileReader(getApplicationContext().getFilesDir().toString() + '/' + fileName);
+            reader.close();
+            isThereFile = true;
+        } catch (Exception e) {
+            isThereFile = false;
+        }
 
-            @Override
-            protected Void doInBackground(Boolean... params) {
-                while (true)
-                {
+        if (!isThereFile) {
+            DataGetStack.getInstance(10, getApplicationContext())
+                    .addTask(SerializableScheduleData.getInstance());
+
+            new AsyncTask<Boolean, Void, Void>() {
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            try
+                            {
+                                FileOutputStream fos = getApplicationContext().openFileOutput(fileName, Context.MODE_PRIVATE);
+                                ObjectOutputStream os = new ObjectOutputStream(fos);
+                                os.writeObject(SerializableScheduleData.getInstance());
+                                os.close();
+                                fos.close();
+                            }
+                            catch (Exception exception)
+                            {
+                                Log.d("Exception: ", exception.getMessage());
+                            }
+
+                        }
+                    });
+                    thread.start();
                     try {
-                        Thread.sleep(1000);
+                        thread.join();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
-                    if (DataGetStack.getInstance().isReady())
-                    {
-                        SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
-                        serializableScheduleData.isLoaded();
-                        break;
-                    }
+                    progressBar.setVisibility(View.GONE);
                 }
-                return null;
+
+                @Override
+                protected Void doInBackground(Boolean... params) {
+                    while (true)
+                    {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (DataGetStack.getInstance().isReady())
+                        {
+                            SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
+                            serializableScheduleData.isLoaded();
+                            break;
+                        }
+                    }
+                    return null;
+                }
             }
+                    .execute();
         }
-                .execute(false, null, null);
+        else
+        {
+            new AsyncTask<Boolean, Void, Void>() {
+                @Override
+                protected Void doInBackground(Boolean... params) {
+                    FileInputStream fis = null;
+                    try {
+                        fis = getApplicationContext().openFileInput(fileName);
+                        ObjectInputStream is = new ObjectInputStream(fis);
+                        SerializableScheduleData.setInstance((SerializableScheduleData) is.readObject());
+                        is.close();
+                        fis.close();
+                    } catch (Exception exception) {
+                        Log.d("Exception: ", exception.getMessage());
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    progressBar.setVisibility(View.GONE);
+                }
+            }
+                    .execute();
+
+        }
     }
 
     private void NavigationCreate() {

@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
@@ -13,6 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Observable;
@@ -21,10 +23,9 @@ import java.util.Observer;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class SerializableScheduleData extends Observable implements DataProcess, FutureCallback<InputStream> {
+public class SerializableScheduleData extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable {
+    private static final long serialVersionUID = 1L;
     public String sheduleUrl = "http://is.agni-rt.ru:8080/schedule/";
-    private Context context;
-    DataGetStack dataGetStack = DataGetStack.getInstance();
 
     private static SerializableScheduleData object;
     public boolean isLoaded() {
@@ -65,6 +66,11 @@ public class SerializableScheduleData extends Observable implements DataProcess,
         return  object;
     }
 
+    public static void setInstance(SerializableScheduleData instance)
+    {
+        object = instance;
+    }
+
     public String[] getStringRepresentationFaculties() {
         String[] strings = new String[faculties.size()];
         Iterator<Faculty> courseIterator = faculties.iterator();
@@ -79,9 +85,8 @@ public class SerializableScheduleData extends Observable implements DataProcess,
     @Override
     public void processData(Context cont, Observer observer) {
         addObserver(observer);
-        context = cont;
 
-        Ion.with(context)
+        Ion.with(cont)
                 .load(sheduleUrl)
                 .asInputStream()
                 .setCallback(this);
@@ -107,11 +112,23 @@ public class SerializableScheduleData extends Observable implements DataProcess,
 
         for (Faculty faculty: faculties)
         {
-            dataGetStack.addTask(faculty);
+            DataGetStack.getInstance().addTask(faculty);
         }
 
         setChanged();
         notifyObservers(this);
         deleteObservers();
+    }
+
+    @Nullable
+    public Object getObjectByString(String name) {
+        for (Faculty faculty: faculties)
+        {
+            if (faculty.toString().equals(name))
+            {
+                return faculty;
+            }
+        }
+        return null;
     }
 }

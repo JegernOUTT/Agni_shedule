@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
@@ -16,6 +17,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -23,13 +25,12 @@ import java.util.Observer;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Group extends Observable implements DataProcess, FutureCallback<InputStream> {
+public class Group extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable {
     private static String postDataName = "group_id";
     private Integer postData;
     private String groupName;
     private ArrayList<Week> weeks;
-    public Course owner;
-    private Context context;
+    public transient Course owner;
     private volatile boolean isLoaded;
     public boolean isLoaded() {
         return isLoaded;
@@ -60,9 +61,8 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
     }
 
     @Override
-    public void processData(Context con, Observer observer) {
+    public void processData(Context context, Observer observer) {
         addObserver(observer);
-        context = con;
 
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
@@ -103,5 +103,17 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
             Log.e("Parce Error", ex.getMessage());
             deleteObservers();
         }
+    }
+
+    @Nullable
+    public Object getObjectByString(String name) {
+        for (Week week: weeks)
+        {
+            if (week.toString().equals(name))
+            {
+                return week;
+            }
+        }
+        return null;
     }
 }

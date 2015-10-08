@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,11 +17,15 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.hellb.agni.R;
+import com.example.hellb.agni.serializible.CurrentSettings;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
+import com.example.hellb.agni.serializible.scheduleData.Group;
+import com.example.hellb.agni.serializible.scheduleData.Week;
 
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener,
         NavigationView.OnNavigationItemSelectedListener {
@@ -116,6 +121,34 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spGroup.setPrompt("Выберите группу...");
 
         spGroup.setEnabled(true);
+    }
+
+    public void btnSaveClick(View view) {
+        if (spFaculty.getSelectedItem() == null ||
+                spCourse.getSelectedItem() == null ||
+                spGroup.getSelectedItem() == null)
+        {
+            Toast.makeText(getApplicationContext(), "Вы должны выбрать все параметры", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            CurrentSettings.getInstance().faculty = (Faculty)
+                    SerializableScheduleData.getInstance().getObjectByString((String) spFaculty.getSelectedItem());
+            CurrentSettings.getInstance().course = (Course)
+                    CurrentSettings.getInstance().faculty.getObjectByString((String) spCourse.getSelectedItem());
+            CurrentSettings.getInstance().group = (Group)
+                    CurrentSettings.getInstance().course.getObjectByString((String) spGroup.getSelectedItem());
+
+            for (Week week: CurrentSettings.getInstance().group.getWeeks())
+            {
+                if (week.isCurrent)
+                    CurrentSettings.getInstance().week = week;
+            }
+            Log.d("Current settings", CurrentSettings.getInstance().faculty.toString());
+            Log.d("Current settings", CurrentSettings.getInstance().course.toString());
+            Log.d("Current settings", CurrentSettings.getInstance().group.toString());
+            Log.d("Current settings", CurrentSettings.getInstance().week.toString());
+        }
     }
 
     @Override

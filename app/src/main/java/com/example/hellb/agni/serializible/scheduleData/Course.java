@@ -1,5 +1,8 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
+import android.support.annotation.Nullable;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -7,14 +10,13 @@ import java.util.List;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Course {
+public class Course implements Serializable {
     public List<Group> getGroups() {
         return groups;
     }
-
     private List<Group> groups;
     private String courseName;
-    public Faculty owner;
+    public transient Faculty owner;
 
     Course(String name) {
         courseName = name;
@@ -41,5 +43,17 @@ public class Course {
         }
 
         return strings;
+    }
+
+    @Nullable
+    public Object getObjectByString(String name) {
+        for (Group group: groups)
+        {
+            if (group.toString().equals(name))
+            {
+                return group;
+            }
+        }
+        return null;
     }
 }
