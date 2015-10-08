@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
+import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
@@ -18,28 +19,45 @@ import org.jsoup.select.Elements;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Faculty implements DataProcess, FutureCallback<InputStream> {
+public class Faculty extends Observable implements DataProcess, FutureCallback<InputStream> {
     private static String postDataName = "faculty_id";
     private Integer postData;
     private String facultyName;
     private Context context;
+    DataGetStack dataGetStack = DataGetStack.getInstance();
 
     public ArrayList<Course> getCourses() {
         return courses;
     }
 
     private ArrayList<Course> courses;
-    public volatile boolean isLoaded;
+    public boolean isLoaded() {
+        boolean isLoaded = true;
+
+        for (Course course: courses)
+        {
+            for (Group group: course.getGroups())
+            {
+                if (! group.isLoaded())
+                {
+                    isLoaded = false;
+                }
+            }
+        }
+
+        return isLoaded;
+    }
 
     public Faculty(Integer post, String faculty) {
         postData = post;
         facultyName = faculty;
         courses = new ArrayList<Course>();
-        isLoaded = false;
     }
 
     public String[] getStringRepresentationCourses() {
@@ -68,8 +86,9 @@ public class Faculty implements DataProcess, FutureCallback<InputStream> {
     }
 
     @Override
-    public void processData(Context cont) {
+    public void processData(Context cont,  Observer observer) {
         context = cont;
+        addObserver(observer);
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
                 .setBodyParameter(postDataName, postData.toString())
@@ -104,21 +123,24 @@ public class Faculty implements DataProcess, FutureCallback<InputStream> {
                     ++i;
                     addCourse(course);
                 }
-
-                isLoaded = true;
             }
 
             for (Course course: courses)
             {
                 for (Group group: course.getGroups())
                 {
-                    group.processData(context);
+                    dataGetStack.addTask(group);
                 }
             }
+
+            setChanged();
+            notifyObservers(this);
+            deleteObservers();
         }
         catch (Exception ex)
         {
             Log.e("Parce Error", ex.getMessage());
+            deleteObservers();
         }
     }
 }

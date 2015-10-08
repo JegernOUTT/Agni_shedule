@@ -1,6 +1,7 @@
 package com.example.hellb.agni.activities;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -13,22 +14,62 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 
+import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.SerializableScheduleData;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
         NavigationCreate();
 
-        SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance(getApplicationContext());
-        serializableScheduleData.processData(getApplicationContext());
+        DataGetStack.getInstance(10, getApplicationContext())
+                .addTask(SerializableScheduleData.getInstance());
+
+        new AsyncTask<Boolean, Void, Void>() {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            protected Void doInBackground(Boolean... params) {
+                while (true)
+                {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (DataGetStack.getInstance().isReady())
+                    {
+                        SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
+                        serializableScheduleData.isLoaded();
+                        break;
+                    }
+                }
+                return null;
+            }
+        }
+                .execute(false, null, null);
     }
 
     private void NavigationCreate() {

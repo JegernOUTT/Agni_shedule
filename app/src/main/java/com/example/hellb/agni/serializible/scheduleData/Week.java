@@ -8,16 +8,19 @@ import com.example.hellb.agni.serializible.DataProcess;
 import com.koushikdutta.async.future.FutureCallback;
 
 import java.io.InputStream;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by hellb on 07.10.2015.
  */
-public class Week implements DataProcess, FutureCallback<InputStream> {
+public class Week extends Observable implements DataProcess, FutureCallback<InputStream> {
     private static String postDataName = "year_week_number";
     public Group owner;
     public boolean isCurrent;
     private int postData;
     private String weekName;
+    private Context context;
     public volatile boolean isLoaded;
 
     public Week(Integer post, String group) {
@@ -31,7 +34,9 @@ public class Week implements DataProcess, FutureCallback<InputStream> {
     }
 
     @Override
-    public void processData(Context context) {
+    public void processData(Context con, Observer observer) {
+        context = con;
+        addObserver(observer);
 
     }
 
@@ -40,9 +45,12 @@ public class Week implements DataProcess, FutureCallback<InputStream> {
         try
         {
 
+            notifyObservers(this);
+            deleteObservers();
         }
         catch (Exception ex)
         {
+            deleteObservers();
             Log.e("Parce Error", ex.getMessage());
         }
     }

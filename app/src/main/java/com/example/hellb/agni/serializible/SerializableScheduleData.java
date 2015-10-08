@@ -2,6 +2,7 @@ package com.example.hellb.agni.serializible;
 
 import android.content.Context;
 
+import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
@@ -14,16 +15,33 @@ import org.jsoup.select.Elements;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by hellb on 06.10.2015.
  */
-public class SerializableScheduleData implements DataProcess, FutureCallback<InputStream> {
+public class SerializableScheduleData extends Observable implements DataProcess, FutureCallback<InputStream> {
     public String sheduleUrl = "http://is.agni-rt.ru:8080/schedule/";
-    private static Context context;
+    private Context context;
+    DataGetStack dataGetStack = DataGetStack.getInstance();
 
     private static SerializableScheduleData object;
-    public volatile boolean isRegisterParamReady;
+    public boolean isLoaded() {
+        boolean isLoaded = true;
+        for (Faculty faculty: faculties)
+        {
+            if (! faculty.isLoaded())
+            {
+                isLoaded = false;
+            }
+        }
+
+        if (faculties.size() == 0)
+            return false;
+
+        return  isLoaded;
+    };
 
     private ArrayList<Faculty> faculties;
     public void addFaculty(Faculty fac) {
@@ -36,17 +54,6 @@ public class SerializableScheduleData implements DataProcess, FutureCallback<Inp
 
     private SerializableScheduleData() {
         faculties = new ArrayList<Faculty>();
-        isRegisterParamReady = false;
-    }
-
-    public static SerializableScheduleData getInstance(Context cont) {
-        if (object == null)
-        {
-            object = new SerializableScheduleData();
-            context = cont;
-        }
-
-        return  object;
     }
 
     public static SerializableScheduleData getInstance() {
@@ -70,15 +77,14 @@ public class SerializableScheduleData implements DataProcess, FutureCallback<Inp
     }
 
     @Override
-    public void processData(Context context) {
+    public void processData(Context cont, Observer observer) {
+        addObserver(observer);
+        context = cont;
+
         Ion.with(context)
                 .load(sheduleUrl)
                 .asInputStream()
                 .setCallback(this);
-        /*
-        * У единственного объекта SerializableScheduleData (singleton) есть ссылка
-        * В этом методе должен заполниться массив faculties
-        * */
     }
 
     @Override
@@ -99,11 +105,13 @@ public class SerializableScheduleData implements DataProcess, FutureCallback<Inp
             }
         }
 
-        SerializableScheduleData.getInstance().isRegisterParamReady = true;
-
         for (Faculty faculty: faculties)
         {
-            faculty.processData(context);
+            dataGetStack.addTask(faculty);
         }
+
+        setChanged();
+        notifyObservers(this);
+        deleteObservers();
     }
 }

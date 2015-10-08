@@ -17,17 +17,23 @@ import org.jsoup.select.Elements;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Group implements DataProcess, FutureCallback<InputStream> {
+public class Group extends Observable implements DataProcess, FutureCallback<InputStream> {
     private static String postDataName = "group_id";
     private Integer postData;
     private String groupName;
     private ArrayList<Week> weeks;
     public Course owner;
-    public volatile boolean isLoaded;
+    private Context context;
+    private volatile boolean isLoaded;
+    public boolean isLoaded() {
+        return isLoaded;
+    };
 
     public Group(Integer post, String group) {
         postData = post;
@@ -54,7 +60,10 @@ public class Group implements DataProcess, FutureCallback<InputStream> {
     }
 
     @Override
-    public void processData(Context context) {
+    public void processData(Context con, Observer observer) {
+        addObserver(observer);
+        context = con;
+
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
                 .setBodyParameter(owner.owner.getRequestData().first, owner.owner.getRequestData().second.toString())
@@ -84,10 +93,15 @@ public class Group implements DataProcess, FutureCallback<InputStream> {
 
                 isLoaded = true;
             }
+
+            setChanged();
+            notifyObservers(this);
+            deleteObservers();
         }
         catch (Exception ex)
         {
             Log.e("Parce Error", ex.getMessage());
+            deleteObservers();
         }
     }
 }

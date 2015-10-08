@@ -22,7 +22,7 @@ import com.example.hellb.agni.serializible.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
 
-public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, Runnable,
+public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener,
         NavigationView.OnNavigationItemSelectedListener {
 
     private volatile boolean isGroupsReady;
@@ -50,9 +50,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spCourse.setOnItemSelectedListener(this);
         spGroup.setOnItemSelectedListener(this);
 
-        serializableScheduleData = SerializableScheduleData.getInstance(getApplicationContext());
+        serializableScheduleData = SerializableScheduleData.getInstance();
 
-        new Thread(this).start();
+        loadSpinnerFaculty();
     }
 
     private void NavigationCreate() {
@@ -87,6 +87,10 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spFaculty.setPrompt("Выберите факультет...");
 
         spFaculty.setEnabled(true);
+
+        if (arr.length == 0)
+            spCourse.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                    android.R.layout.simple_spinner_dropdown_item, new String[]{}));
     }
 
     private void loadSpinnerCourse(Faculty faculty) {
@@ -98,6 +102,10 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spCourse.setPrompt("Выберите курс...");
 
         spCourse.setEnabled(true);
+
+        if (arr.length == 0)
+            spGroup.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                    android.R.layout.simple_spinner_dropdown_item, new String[]{}));
     }
 
     private void loadSpinnerGroup(Course course) {
@@ -147,46 +155,12 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     public void onNothingSelected(AdapterView<?> parent) {
         switch (parent.getId()) {
             case R.id.spFaculty:
-                spCourse.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                        android.R.layout.simple_spinner_dropdown_item, new String[]{}));
+
                 break;
 
             case R.id.spCourse:
-                spGroup.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                        android.R.layout.simple_spinner_dropdown_item, new String[]{}));
+
                 break;
-        }
-    }
-
-    @Override
-    public void run() {
-        boolean isLoadedFaculty = false;
-        while (true)
-        {
-            if (serializableScheduleData.isRegisterParamReady && !isLoadedFaculty)
-            {
-                loadSpinnerFaculty();
-                isLoadedFaculty = true;
-            }
-
-            boolean isGroupReady = true;
-            for(Faculty faculty: serializableScheduleData.getFaculties())
-            {
-                if (! faculty.isLoaded)
-                    isGroupReady = false;
-            }
-
-            if (isGroupReady)
-            {
-                isGroupsReady = true;
-                break;
-            }
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 
