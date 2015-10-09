@@ -35,9 +35,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         NavigationView.OnNavigationItemSelectedListener {
 
     static String currentSettingsFileName = "currentSettings.dat";
-    private volatile boolean isGroupsReady;
+    private volatile boolean isLoaded;
     private Spinner spFaculty, spGroup, spCourse;
-    private ArrayAdapter<String> arrayAdapterFac, arrayAdapterGr;
+    private ArrayAdapter<String> arrayAdapterFac, arrayAdapterCourse, arrayAdapterGr;
     private EditText editText;
     private SerializableScheduleData serializableScheduleData;
 
@@ -47,6 +47,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         setContentView(R.layout.activity_login);
 
         NavigationCreate();
+        isLoaded = false;
 
         spFaculty = (Spinner) findViewById(R.id.spFaculty);
         spGroup = (Spinner) findViewById(R.id.spGroup);
@@ -61,13 +62,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spGroup.setOnItemSelectedListener(this);
 
         serializableScheduleData = SerializableScheduleData.getInstance();
+        CurrentSettings currentSettings = CurrentSettings.getInstance();
 
         loadSpinnerFaculty();
-
-        if (CurrentSettings.getInstance().isLoaded)
-        {
-
-        }
     }
 
     private void NavigationCreate() {
@@ -103,34 +100,63 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
         spFaculty.setEnabled(true);
 
-        if (arr.length == 0)
-            spCourse.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                    android.R.layout.simple_spinner_dropdown_item, new String[]{}));
+        if (!isLoaded)
+        {
+            if (CurrentSettings.getInstance().isLoaded) {
+                for (int i = 0; i < arrayAdapterFac.getCount(); ++i) {
+                    if (CurrentSettings.getInstance().faculty.toString().equals((String) arrayAdapterFac.getItem(i))) {
+                        spFaculty.setSelection(i, true);
+                    }
+                }
+            }
+        }
     }
 
     private void loadSpinnerCourse(Faculty faculty) {
         String[] arr =  faculty.getStringRepresentationCourses();
 
-        arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
+        arrayAdapterCourse = new ArrayAdapter<String>(getApplicationContext(),
                 android.R.layout.simple_spinner_dropdown_item, arr);
-        spCourse.setAdapter(arrayAdapterFac);
+        spCourse.setAdapter(arrayAdapterCourse);
         spCourse.setPrompt("Выберите курс...");
 
         spCourse.setEnabled(true);
 
-        if (arr.length == 0)
-            spGroup.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                    android.R.layout.simple_spinner_dropdown_item, new String[]{}));
+        if (!isLoaded)
+        {
+            if (CurrentSettings.getInstance().isLoaded) {
+                for(int i = 0; i < arrayAdapterCourse.getCount(); ++i)
+                {
+                    if (CurrentSettings.getInstance().course.toString().equals((String) arrayAdapterCourse.getItem(i)))
+                    {
+                        spCourse.setSelection(i, true);
+                    }
+                }
+            }
+        }
     }
 
     private void loadSpinnerGroup(Course course) {
         String[] arr = course.getStringRepresentationGroups();
-        arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
+        arrayAdapterGr = new ArrayAdapter<String>(getApplicationContext(),
                 android.R.layout.simple_spinner_item, arr);
-        spGroup.setAdapter(arrayAdapterFac);
+        spGroup.setAdapter(arrayAdapterGr);
         spGroup.setPrompt("Выберите группу...");
 
         spGroup.setEnabled(true);
+
+        if (!isLoaded)
+        {
+            if (CurrentSettings.getInstance().isLoaded) {
+                for(int i = 0; i < arrayAdapterGr.getCount(); ++i)
+                {
+                    if (CurrentSettings.getInstance().group.toString().equals((String) arrayAdapterGr.getItem(i)))
+                    {
+                        spGroup.setSelection(i, true);
+                    }
+                }
+            }
+        }
     }
 
     public void btnSaveClick(View view) {
