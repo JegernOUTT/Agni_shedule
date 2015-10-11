@@ -322,7 +322,8 @@ public class MainActivity extends AppCompatActivity
             startActivity(intent);
         }
         else if (id == R.id.nav_schedule) {
-
+            Intent intent = new Intent(this, ScheduleActivity.class);
+            startActivity(intent);
         }
 
         item.setChecked(true);
