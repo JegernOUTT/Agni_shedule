@@ -17,8 +17,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.R;
+import com.example.hellb.agni.serializible.CurrentSettings;
 
 public class ScheduleActivity extends AppCompatActivity {
 
@@ -42,6 +45,24 @@ public class ScheduleActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule);
 
+        if (! CurrentSettings.getInstance().isLoaded)
+        {
+            Toast.makeText(getApplicationContext(), "Заполните входные данные", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            loadSchedule();
+        }
+
+        notificationCreate();
+    }
+
+    private void loadSchedule() {
+        DataGetStack.getInstance(1, getApplicationContext()).
+                addTask(CurrentSettings.getInstance().week.schedule);
+    }
+
+    private void notificationCreate() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -63,9 +84,7 @@ public class ScheduleActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -27,8 +27,22 @@ import java.util.Observer;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Faculty extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable {
+public class Faculty extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable,
+    Cloneable
+{
     private static String postDataName = "faculty_id";
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        Faculty f = new Faculty(this.postData, this.toString());
+        for (Course course: this.getCourses())
+        {
+            f.addCourse((Course) course.clone());
+        }
+
+        return f;
+    }
+
     private Integer postData;
     private String facultyName;
 

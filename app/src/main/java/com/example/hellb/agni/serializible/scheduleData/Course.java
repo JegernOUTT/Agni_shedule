@@ -10,17 +10,28 @@ import java.util.List;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Course implements Serializable {
+public class Course implements Serializable, Cloneable {
     public List<Group> getGroups() {
         return groups;
     }
     private List<Group> groups;
     private String courseName;
-    public transient Faculty owner;
+    public Faculty owner;
 
     Course(String name) {
         courseName = name;
         groups = new ArrayList<Group>();
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Course c = new Course(this.toString());
+        for (Group group: this.getGroups())
+        {
+            c.addGroup((Group) group.clone());
+        }
+
+        return c;
     }
 
     public void addGroup(Group group) {

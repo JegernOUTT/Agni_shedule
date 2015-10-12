@@ -23,9 +23,21 @@ import java.util.Observer;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class SerializableScheduleData extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable {
+public class SerializableScheduleData extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable,
+        Cloneable {
     private static final long serialVersionUID = 1L;
     public String sheduleUrl = "http://is.agni-rt.ru:8080/schedule/";
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        SerializableScheduleData s = new SerializableScheduleData();
+        for (Faculty faculty: this.getFaculties())
+        {
+            s.addFaculty((Faculty) faculty.clone());
+        }
+
+        return s;
+    }
 
     private static SerializableScheduleData object;
     public boolean isLoaded() {
@@ -65,8 +77,7 @@ public class SerializableScheduleData extends Observable implements DataProcess,
         return  object;
     }
 
-    public static void setInstance(SerializableScheduleData instance)
-    {
+    public static void setInstance(SerializableScheduleData instance) {
         object = instance;
     }
 

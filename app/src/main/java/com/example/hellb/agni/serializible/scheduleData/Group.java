@@ -25,12 +25,26 @@ import java.util.Observer;
 /**
  * Created by hellb on 06.10.2015.
  */
-public class Group extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable {
+public class Group extends Observable implements DataProcess, FutureCallback<InputStream>, Serializable,
+    Cloneable
+{
     private static String postDataName = "group_id";
     private Integer postData;
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Group g = new Group(this.postData, this.toString());
+        for (Week week: this.getWeeks())
+        {
+            g.addWeek((Week) week.clone());
+        }
+
+        return g;
+    }
+
     private String groupName;
     private ArrayList<Week> weeks;
-    public transient Course owner;
+    public Course owner;
 
     public void setIsLoaded(boolean isLoaded) {
         this.isLoaded = isLoaded;

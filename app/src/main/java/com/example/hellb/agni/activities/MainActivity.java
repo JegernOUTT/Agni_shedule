@@ -170,7 +170,24 @@ public class MainActivity extends AppCompatActivity
                     is.close();
                     fis.close();
                 } catch (Exception exception) {
-                    Log.d("Exception: ", exception.getMessage());
+                    Log.d("Exception in deser: ", exception.getMessage());
+                }
+
+                for (Faculty faculty: SerializableScheduleData.getInstance().getFaculties())
+                {
+                    for (Course course: faculty.getCourses())
+                    {
+                        course.owner = faculty;
+                        for (Group group: course.getGroups())
+                        {
+                            group.owner = course;
+                            for (Week week: group.getWeeks())
+                            {
+                                week.owner = group;
+                                week.schedule.owner = week;
+                            }
+                        }
+                    }
                 }
                 return null;
             }
