@@ -1,6 +1,7 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
@@ -27,6 +28,10 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
 {
     ArrayList<Lesson> lessons;
     public Week owner;
+
+    public ArrayList<Lesson> getLessons() {
+        return lessons;
+    }
 
     public Schedule()
     {
@@ -66,24 +71,23 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
             {
                 Document document = Jsoup.parse(InputStreamToStringWin1251.toStr(result));
                 Element table = document.getElementsByClass("slt").first();
-
-                Elements rowElements = table.getElementsByTag("th");
-                Elements days = new Elements(), time = new Elements(), lessons = new Elements();
+                Elements rowElements = table.getElementsByTag("th"), lessons = new Elements(),
+                        tr = table.getElementsByTag("tr");
+                ArrayList<String> times = new ArrayList<String>(), days = new ArrayList<String>();
 
                 for (Element element: rowElements)
                 {
                     if (element.hasAttr("align"))
                     {
-                        time.add(element);
+                        times.add(element.text());
                     }
                     else if (element.hasAttr("width"))
                     {
-                        days.add(element);
+                        days.add(element.text());
                     }
                 }
                 days.remove(0);
 
-                Elements tr = table.getElementsByTag("tr");
                 for (Element element: tr)
                 {
                     if (element.getElementsByTag("th").hasText())
@@ -91,18 +95,62 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
                         lessons.add(element);
                     }
                 }
+                lessons.remove(0);
 
+                for (int i = 0; i < times.size(); ++i)
+                {
+                    Elements tmp = lessons.get(i).getElementsByTag("td"), lessonsByDay = new Elements();
+                    for (Element element: tmp)
+                    {
+                        if (element.hasAttr("align"))
+                        {
+                            lessonsByDay.add(element);
+                        }
+                    }
 
-                Elements sad = table.getElementsByTag("th");
+                    for (int j = 0; j < days.size(); ++j)
+                    {
+                        Elements finalLessons = lessonsByDay.get(j).getElementsByTag("td");
+                        finalLessons.remove(0);
+                        for (Element element: finalLessons)
+                        {
+                            if (! element.text().isEmpty())
+                            {
+                                String group;
+                                if (element.html().indexOf("</span> /") != -1)
+                                {
+                                    group = element.html().substring(element.html().indexOf("</span> /") + 10, element.html().indexOf("<br />"));
+                                }
+                                else
+                                {
+                                    group = "1";
+                                }
+                                Lesson lesson = Lesson.newBuilder()
+                                        .setCurrentPair(i, times.get(i))
+                                        .setCurrentDay(j, days.get(i))
+                                        .setName(element.getElementsByTag("span").get(0).text(),
+                                                element.getElementsByTag("span").get(0).attr("title"))
+                                        .setPairType(element.getElementsByTag("span").get(1).text(),
+                                                element.getElementsByTag("span").get(1).attr("title"))
+                                        .setauditoryNumber(element.getElementsByClass("aud_number").text())
+                                        .setTeacherName(element.getElementsByTag("span").get(3).text(),
+                                                element.getElementsByTag("span").get(3).attr("title"))
+                                        .setCurrentHalfGroup(Integer.parseInt(group), group)
+                                        .build();
 
-
-
-
-
-
-
+                                this.lessons.add(lesson);
+                            }
+                        }
+                    }
+                }
             }
+
+            setChanged();
+            notifyObservers(this);
+            deleteObservers();
         }
-        catch (Exception ex){}
+        catch (Exception ex){
+            Log.d(ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 }

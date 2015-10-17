@@ -50,12 +50,12 @@ public class DataGetStack implements Observer, Runnable {
     }
 
     public boolean isReady() {
-        if (SerializableScheduleData.getInstance().isLoaded() && dataProcessStack.size() == 0)
+        if (SerializableScheduleData.getInstance().isLoaded() && dataProcessStack.size() == 0
+                && currentConnection == 0)
         {
             return true;
         }
-        else
-            return false;
+        else return false;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.example.hellb.agni.activities;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -15,13 +17,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.R;
+import com.example.hellb.agni.adapters.ScheduleAdapter;
 import com.example.hellb.agni.serializible.CurrentSettings;
+import com.example.hellb.agni.serializible.scheduleData.Lesson;
+import com.example.hellb.agni.serializible.scheduleData.Schedule;
+import com.example.hellb.agni.serializible.scheduleEnums.DaysOfWeek;
+
+import java.util.ArrayList;
 
 public class ScheduleActivity extends AppCompatActivity {
 
@@ -53,13 +61,18 @@ public class ScheduleActivity extends AppCompatActivity {
         {
             loadSchedule();
         }
-
         notificationCreate();
     }
 
     private void loadSchedule() {
-        DataGetStack.getInstance(1, getApplicationContext()).
-                addTask(CurrentSettings.getInstance().week.schedule);
+        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                DataGetStack.getInstance(1, getApplicationContext()).
+                        addTask(CurrentSettings.getInstance().week.schedule);
+                return null;
+            }
+        }.execute();
     }
 
     private void notificationCreate() {
@@ -108,15 +121,16 @@ public class ScheduleActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        public Schedule currentSchedule;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
+            currentSchedule = CurrentSettings.getInstance().week.schedule;
         }
 
         @Override
@@ -128,19 +142,22 @@ public class ScheduleActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            return 3;
+            return 5;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "ПН";
                 case 1:
-                    return "SECTION 2";
+                    return "ВТ";
                 case 2:
-                    return "SECTION 3";
+                    return "СР";
+                case 3:
+                    return "ЧТ";
+                case 4:
+                    return "ПТ";
             }
             return null;
         }
@@ -155,6 +172,9 @@ public class ScheduleActivity extends AppCompatActivity {
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private ProgressBar progressBar;
+        private ListView listView;
+        private DaysOfWeek currentDay;
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -175,17 +195,67 @@ public class ScheduleActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
+            listView = (ListView)rootView.findViewById(R.id.listView);
+            progressBar = (ProgressBar)rootView.findViewById((R.id.progressBar2));
+            progressBar.setVisibility(View.VISIBLE);
 
-            String[] strings = new String[]{getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)),
-                    getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)),
-                    getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)),
-                    getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)),
-                    getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER))};
-
-            ListView listView = (ListView)rootView.findViewById(R.id.listView);
-            listView.setAdapter(new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_dropdown_item, strings));
+            int i = 0;
+            for (DaysOfWeek value: DaysOfWeek.values())
+            {
+                if ((getArguments().getInt(ARG_SECTION_NUMBER) - 1) == i)
+                {
+                    currentDay = value;
+                }
+                ++i;
+            }
 
             return rootView;
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
+            AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    while (!DataGetStack.getInstance().isReady())
+                    {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    CurrentSettings asd = CurrentSettings.getInstance();
+                    progressBar.setVisibility(View.GONE);
+                    scheduleOnFragment(listView, currentDay, getContext());
+                }
+            }.execute();
+        }
+
+        private void scheduleOnFragment(ListView listView, DaysOfWeek currentDay, Context context) {
+            if (currentDay != null)
+            {
+                ArrayList<Lesson> lessons = new ArrayList<Lesson>();
+                for (Lesson lesson: CurrentSettings.getInstance().week.schedule.getLessons())
+                {
+                    if (lesson.getCurrentDay().second.compareTo(currentDay) == 0)
+                    {
+                        lessons.add(lesson);
+                    }
+                }
+
+                ScheduleAdapter scheduleAdapter = new ScheduleAdapter(context, lessons);
+
+                listView.setAdapter(scheduleAdapter);
+                listView.setVisibility(View.VISIBLE);
+            }
         }
     }
 }
