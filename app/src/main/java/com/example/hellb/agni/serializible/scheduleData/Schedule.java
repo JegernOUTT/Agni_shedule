@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
-import com.example.hellb.agni.serializible.SerializableScheduleData;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 
@@ -26,18 +25,22 @@ import java.util.Observer;
 public class Schedule extends Observable implements Serializable, DataProcess, FutureCallback<InputStream>,
     Cloneable
 {
-    ArrayList<Lesson> lessons;
+    private ArrayList<Lesson> lessons;
+    private boolean isReady;
     public Week owner;
 
     public ArrayList<Lesson> getLessons() {
         return lessons;
     }
 
-    public Schedule()
-    {
+    public Schedule() {
         lessons = new ArrayList<Lesson>();
+        isReady = false;
     }
 
+    public boolean isReady() {
+        return isReady;
+    }
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
@@ -114,31 +117,16 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
                         finalLessons.remove(0);
                         for (Element element: finalLessons)
                         {
-                            if (! element.text().isEmpty())
+                            if (! element.html().isEmpty())
                             {
-                                String group;
-                                if (element.html().indexOf("</span> /") != -1)
+                                if (element.html().indexOf("slt_gr_wl") == -1)
                                 {
-                                    group = element.html().substring(element.html().indexOf("</span> /") + 10, element.html().indexOf("<br />"));
+                                    this.lessons.add(getLesson(times, days, i, j, element));
                                 }
                                 else
                                 {
-                                    group = "1";
-                                }
-                                Lesson lesson = Lesson.newBuilder()
-                                        .setCurrentPair(i, times.get(i))
-                                        .setCurrentDay(j, days.get(i))
-                                        .setName(element.getElementsByTag("span").get(0).text(),
-                                                element.getElementsByTag("span").get(0).attr("title"))
-                                        .setPairType(element.getElementsByTag("span").get(1).text(),
-                                                element.getElementsByTag("span").get(1).attr("title"))
-                                        .setauditoryNumber(element.getElementsByClass("aud_number").text())
-                                        .setTeacherName(element.getElementsByTag("span").get(3).text(),
-                                                element.getElementsByTag("span").get(3).attr("title"))
-                                        .setCurrentHalfGroup(Integer.parseInt(group), group)
-                                        .build();
 
-                                this.lessons.add(lesson);
+                                }
                             }
                         }
                     }
@@ -148,9 +136,34 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
             setChanged();
             notifyObservers(this);
             deleteObservers();
+            isReady = true;
         }
         catch (Exception ex){
             Log.d(ex.getMessage(), ex.getLocalizedMessage());
         }
+    }
+
+    private Lesson getLesson(ArrayList<String> times, ArrayList<String> days, int i, int j, Element element) {
+        String group;
+        if (element.html().indexOf("</span> /") != -1)
+        {
+            group = element.html().substring(element.html().indexOf("</span> /") + 10, element.html().indexOf("<br />"));
+        }
+        else
+        {
+            group = "1";
+        }
+        return Lesson.newBuilder()
+                .setCurrentPair(i, times.get(i))
+                .setCurrentDay(j, days.get(i))
+                .setName(element.getElementsByTag("span").get(0).text(),
+                        element.getElementsByTag("span").get(0).attr("title"))
+                .setPairType(element.getElementsByTag("span").get(1).text(),
+                        element.getElementsByTag("span").get(1).attr("title"))
+                .setauditoryNumber(element.getElementsByClass("aud_number").text())
+                .setTeacherName(element.getElementsByTag("span").get(3).text(),
+                        element.getElementsByTag("span").get(3).attr("title"))
+                .setCurrentHalfGroup(Integer.parseInt(group), group)
+                .build();
     }
 }

@@ -3,7 +3,7 @@ package com.example.hellb.agni;
 import android.content.Context;
 
 import com.example.hellb.agni.serializible.DataProcess;
-import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
 
 import java.util.LinkedList;
 import java.util.Observable;
@@ -78,7 +78,7 @@ public class DataGetStack implements Observer, Runnable {
             }
 
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -21,7 +21,7 @@ import android.widget.ProgressBar;
 import com.example.hellb.agni.DataGetStack;
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.CurrentSettings;
-import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.example.hellb.agni.serializible.scheduleData.Group;
@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
+                    Intent intent = new Intent(MainActivity.this, ScheduleActivity.class);
+                    startActivity(intent);
                 }
 
                 @Override
@@ -342,10 +344,6 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, ScheduleActivity.class);
             startActivity(intent);
         }
-
-        item.setChecked(true);
-        item.setEnabled(false);
-        setTitle(item.getTitle());
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

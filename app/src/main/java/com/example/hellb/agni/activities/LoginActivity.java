@@ -1,6 +1,7 @@
 package com.example.hellb.agni.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -16,13 +17,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.CurrentSettings;
-import com.example.hellb.agni.serializible.SerializableScheduleData;
+import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.example.hellb.agni.serializible.scheduleData.Group;
@@ -38,8 +38,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     private volatile boolean isLoaded;
     private Spinner spFaculty, spGroup, spCourse;
     private ArrayAdapter<String> arrayAdapterFac, arrayAdapterCourse, arrayAdapterGr;
-    private EditText editText;
     private SerializableScheduleData serializableScheduleData;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +62,14 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spGroup.setOnItemSelectedListener(this);
 
         serializableScheduleData = SerializableScheduleData.getInstance();
-        CurrentSettings currentSettings = CurrentSettings.getInstance();
 
         loadSpinnerFaculty();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        navigationView.setCheckedItem(R.id.nav_enter);
     }
 
     private void NavigationCreate() {
@@ -86,7 +91,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
@@ -289,7 +294,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
         }
         else if (id == R.id.nav_schedule) {
-
+            Intent intent = new Intent(this, ScheduleActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

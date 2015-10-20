@@ -1,10 +1,11 @@
-package com.example.hellb.agni.serializible;
+package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
 
 import com.example.hellb.agni.DataGetStack;
-import com.example.hellb.agni.serializible.scheduleData.Faculty;
+import com.example.hellb.agni.serializible.DataProcess;
+import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 

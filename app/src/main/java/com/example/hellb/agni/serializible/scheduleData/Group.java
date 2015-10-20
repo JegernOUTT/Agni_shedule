@@ -7,7 +7,6 @@ import android.util.Pair;
 
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
-import com.example.hellb.agni.serializible.SerializableScheduleData;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 

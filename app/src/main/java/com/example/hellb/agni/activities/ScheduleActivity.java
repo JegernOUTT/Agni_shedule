@@ -1,15 +1,20 @@
 package com.example.hellb.agni.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -31,7 +36,8 @@ import com.example.hellb.agni.serializible.scheduleEnums.DaysOfWeek;
 
 import java.util.ArrayList;
 
-public class ScheduleActivity extends AppCompatActivity {
+public class ScheduleActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -47,6 +53,13 @@ public class ScheduleActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private NavigationView navigationView;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        navigationView.setCheckedItem(R.id.nav_schedule);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,14 +78,17 @@ public class ScheduleActivity extends AppCompatActivity {
     }
 
     private void loadSchedule() {
-        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                DataGetStack.getInstance(1, getApplicationContext()).
-                        addTask(CurrentSettings.getInstance().week.schedule);
-                return null;
-            }
-        }.execute();
+        if (! CurrentSettings.getInstance().week.schedule.isReady())
+        {
+            AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    DataGetStack.getInstance(1, getApplicationContext()).
+                            addTask(CurrentSettings.getInstance().week.schedule);
+                    return null;
+                }
+            }.execute();
+        }
     }
 
     private void notificationCreate() {
@@ -97,12 +113,21 @@ public class ScheduleActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_schedule, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -119,6 +144,32 @@ public class ScheduleActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem menuItem) {
+        int id = menuItem.getItemId();
+
+        if (id == R.id.nav_enter) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+        else if (id == R.id.nav_schedule) {
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     /**

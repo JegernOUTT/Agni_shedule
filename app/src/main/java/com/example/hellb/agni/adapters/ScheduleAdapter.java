@@ -53,6 +53,7 @@ public class ScheduleAdapter extends BaseAdapter {
         TextView textViewAuditoryName = (TextView) convertView.findViewById(R.id.tvAuditoryName);
         TextView textViewLessonType = (TextView) convertView.findViewById(R.id.tvLessonType);
         TextView textViewHalfGroup = (TextView) convertView.findViewById(R.id.tvHalfGroup);
+        TextView textViewTeachName = (TextView) convertView.findViewById(R.id.tvTeachName);
 
 
         textViewTime.setText(((Lesson) getItem(position)).getCurrentPair().first);
@@ -60,6 +61,7 @@ public class ScheduleAdapter extends BaseAdapter {
         textViewAuditoryName.setText(((Lesson) getItem(position)).getAuditoryNumber());
         textViewLessonType.setText(((Lesson) getItem(position)).getPairType().second);
         textViewHalfGroup.setText("Подгруппа: " + ((Lesson) getItem(position)).getCurrentHalfGroup().first);
+        textViewTeachName.setText(((Lesson) getItem(position)).getTeacherName().second);
 
         return convertView;
     }
