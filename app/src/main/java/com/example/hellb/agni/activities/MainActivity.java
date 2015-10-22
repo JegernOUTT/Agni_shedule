@@ -1,8 +1,6 @@
 package com.example.hellb.agni.activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -12,32 +10,25 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.example.hellb.agni.DataGetStack;
+import com.example.hellb.agni.DataSerializeController;
+import com.example.hellb.agni.DataWebController;
 import com.example.hellb.agni.R;
-import com.example.hellb.agni.serializible.CurrentSettings;
-import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
-import com.example.hellb.agni.serializible.scheduleData.Course;
-import com.example.hellb.agni.serializible.scheduleData.Faculty;
-import com.example.hellb.agni.serializible.scheduleData.Group;
-import com.example.hellb.agni.serializible.scheduleData.Week;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.util.Observable;
+import java.util.Observer;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, Observer {
     private ProgressBar progressBar;
-    static String modelFileName = "model.dat";
-    static String currentSettingsFileName = "currentSettings.dat";
+
+    private static String currentSettingsFileName = "currentSettings.dat";
+    private static String modelFileName = "model.dat";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +36,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         NavigationCreate();
-
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
 
         loadModel();
     }
@@ -68,75 +59,7 @@ public class MainActivity extends AppCompatActivity
         }
         else
         {
-            new AsyncTask<Void, Void, Void>(){
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    super.onPostExecute(aVoid);
-                    Intent intent = new Intent(MainActivity.this, ScheduleActivity.class);
-                    startActivity(intent);
-                }
-
-                @Override
-                protected Void doInBackground(Void... params) {
-                    FileInputStream fis = null;
-                    try {
-                        fis = getApplicationContext().openFileInput(currentSettingsFileName);
-                        ObjectInputStream is = new ObjectInputStream(fis);
-                        CurrentSettings.setInstance((CurrentSettings) is.readObject());
-                        is.close();
-                        fis.close();
-                    } catch (Exception exception) {
-                        Log.d("Exception: ", exception.getMessage());
-                    }
-
-                    implementRealModel();
-
-
-                    return null;
-                }
-
-                private void implementRealModel() {
-                    for (Faculty faculty: SerializableScheduleData.getInstance().getFaculties())
-                    {
-                        if (faculty.equals(CurrentSettings.getInstance().faculty))
-                        {
-                            CurrentSettings.getInstance().faculty = faculty;
-                        }
-                    }
-
-                    for (Course course: CurrentSettings.getInstance().faculty.getCourses())
-                    {
-                        if (course.equals(CurrentSettings.getInstance().course))
-                        {
-                            CurrentSettings.getInstance().course = course;
-                        }
-                    }
-
-                    for (Group group: CurrentSettings.getInstance().course.getGroups())
-                    {
-                        if (group.equals(CurrentSettings.getInstance().group))
-                        {
-                            CurrentSettings.getInstance().group = group;
-                        }
-                    }
-
-                    for (Week week: CurrentSettings.getInstance().group.getWeeks())
-                    {
-                        if (week.equals(CurrentSettings.getInstance().week))
-                        {
-                            CurrentSettings.getInstance().week = week;
-                        }
-                    }
-
-                    CurrentSettings.getInstance().isLoaded = true;
-                }
-
-            }.execute();
+            DataSerializeController.getInstance(getApplicationContext()).deserializeCurrentSettings(this);
         }
     }
 
@@ -152,128 +75,12 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (!isThereFile) {
-            updateModelFromWeb();
+            DataWebController.getInstance(getApplicationContext()).downloadModelToCurrentSettings(this);
         }
         else
         {
-            updateModelFromDeserialization();
+            DataSerializeController.getInstance(getApplicationContext()).deserializeModel(this);
         }
-    }
-
-    private void updateModelFromDeserialization() {
-        new AsyncTask<Boolean, Void, Void>() {
-            @Override
-            protected Void doInBackground(Boolean... params) {
-                FileInputStream fis = null;
-                try {
-                    fis = getApplicationContext().openFileInput(modelFileName);
-                    ObjectInputStream is = new ObjectInputStream(fis);
-                    SerializableScheduleData.setInstance((SerializableScheduleData) is.readObject());
-                    is.close();
-                    fis.close();
-                } catch (Exception exception) {
-                    Log.d("Exception in deser: ", exception.getMessage());
-                }
-
-                for (Faculty faculty: SerializableScheduleData.getInstance().getFaculties())
-                {
-                    for (Course course: faculty.getCourses())
-                    {
-                        course.owner = faculty;
-                        for (Group group: course.getGroups())
-                        {
-                            group.owner = course;
-                            for (Week week: group.getWeeks())
-                            {
-                                week.owner = group;
-                                week.schedule.owner = week;
-                            }
-                        }
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                progressBar.setVisibility(View.GONE);
-                loadCurrentSettings();
-            }
-        }
-                .execute();
-    }
-
-    private void updateModelFromWeb() {
-        DataGetStack.getInstance(10, getApplicationContext())
-                .addTask(SerializableScheduleData.getInstance());
-
-        new AsyncTask<Boolean, Void, Void>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        try
-                        {
-                            FileOutputStream fos = getApplicationContext().openFileOutput(modelFileName, Context.MODE_PRIVATE);
-                            ObjectOutputStream os = new ObjectOutputStream(fos);
-                            os.writeObject(SerializableScheduleData.getInstance());
-                            os.close();
-                            fos.close();
-                        }
-                        catch (Exception exception)
-                        {
-                            Log.d("Exception: ", exception.getMessage());
-                        }
-
-                    }
-                }).start();
-                progressBar.setVisibility(View.GONE);
-                loadCurrentSettings();
-            }
-
-            @Override
-            protected Void doInBackground(Boolean... params) {
-                while (true)
-                {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (DataGetStack.getInstance().isReady())
-                    {
-                        SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
-                        serializableScheduleData.isLoaded();
-                        break;
-                    }
-                }
-                return null;
-            }
-        }
-                .execute();
     }
 
     private void NavigationCreate() {
@@ -348,5 +155,29 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void update(Observable observable, Object data) {
+        String inf = (String) data;
+
+        if (inf.equals("downloadScheduleToCurrentSettings")){
+            progressBar.setVisibility(View.GONE);
+
+            Intent intent = new Intent(this, ScheduleActivity.class);
+            startActivity(intent);
+        }
+        else if (inf.equals("downloadModelToCurrentSettings")){
+            progressBar.setVisibility(View.GONE);
+
+            DataSerializeController.getInstance(getApplicationContext()).serializeModel(this);
+            loadCurrentSettings();
+        }
+        else if (inf.equals("deserializeCurrentSettings")){
+            DataWebController.getInstance(getApplicationContext()).downloadScheduleToCurrentSettings(MainActivity.this);
+        }
+        else if (inf.equals("deserializeModel")){
+            loadCurrentSettings();
+        }
     }
 }

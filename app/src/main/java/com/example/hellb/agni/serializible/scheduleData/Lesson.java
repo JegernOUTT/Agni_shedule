@@ -48,8 +48,7 @@ public class Lesson implements Serializable {
         return teacherName;
     }
 
-    private Lesson()
-    {
+    private Lesson() {
 
     }
 
@@ -60,16 +59,34 @@ public class Lesson implements Serializable {
     public class Builder {
         private Builder(){}
 
-        public Builder setCurrentDay(int cnt, String token) {
-            int i = 0;
-            for (DaysOfWeek daysOfWeek: DaysOfWeek.values())
-            {
-                if (i == cnt)
-                {
-                    Lesson.this.currentDay = new Pair<>(token, daysOfWeek);
-                }
-                ++i;
+        public Builder setCurrentDay(String token) {
+            String[] daysArr = {"Понедельник", "Вторник", "Среда", "Четверг",
+                    "Пятница", "Суббота", "Воскресенье"};
+
+            String result = token.replaceAll("[\\d | {.}]+", "");
+
+            if (result.equals(daysArr[0])) {
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.MONDAY);
             }
+            else if (result.equals(daysArr[1])){
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.TUESDAY);
+            }
+            else if (result.equals(daysArr[2])){
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.WEDNESDAY);
+            }
+            else if (result.equals(daysArr[3])){
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.THURSDAY);
+            }
+            else if (result.equals(daysArr[4])){
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.FRIDAY);
+            }
+            else if (result.equals(daysArr[5])){
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.SATURDAY);
+            }
+            else if (result.equals(daysArr[6])){
+                Lesson.this.currentDay = new Pair<>(result, DaysOfWeek.SUNDAY);
+            }
+
             return this;
         }
 

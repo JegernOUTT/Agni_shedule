@@ -57,7 +57,17 @@ public class ScheduleAdapter extends BaseAdapter {
 
 
         textViewTime.setText(((Lesson) getItem(position)).getCurrentPair().first);
-        textViewLessonName.setText(((Lesson) getItem(position)).getName().second);
+
+        if (((Lesson) getItem(position)).getName().second.length() > 42)
+        {
+            String tmpString = ((Lesson) getItem(position)).getName().second.substring(0, 39);
+            tmpString += "...";
+            textViewLessonName.setText(tmpString);
+        }
+        else
+        {
+            textViewLessonName.setText(((Lesson) getItem(position)).getName().second);
+        }
         textViewAuditoryName.setText(((Lesson) getItem(position)).getAuditoryNumber());
         textViewLessonType.setText(((Lesson) getItem(position)).getPairType().second);
         textViewHalfGroup.setText("Подгруппа: " + ((Lesson) getItem(position)).getCurrentHalfGroup().first);

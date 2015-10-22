@@ -28,7 +28,8 @@
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:id="@+id/spFaculty"
-        android:spinnerMode="dropdown" />
+        android:spinnerMode="dropdown"
+            style="@style/AlertDialog.AppCompat.Light" />
     </LinearLayout>
 
     <LinearLayout
@@ -85,6 +86,15 @@
         android:layout_below="@+id/linearLayout"
         android:layout_alignEnd="@+id/linearLayout"
         android:onClick="btnSaveClick" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar3"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="38dp" />
 
 
 </RelativeLayout>

@@ -1,6 +1,5 @@
 package com.example.hellb.agni.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,28 +10,30 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.example.hellb.agni.DataSerializeController;
+import com.example.hellb.agni.DataWebController;
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.CurrentSettings;
-import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.example.hellb.agni.serializible.scheduleData.Group;
+import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Week;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.util.Observable;
+import java.util.Observer;
 
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener,
-        NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener, Observer {
 
     static String currentSettingsFileName = "currentSettings.dat";
     private volatile boolean isLoaded;
@@ -40,6 +41,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     private ArrayAdapter<String> arrayAdapterFac, arrayAdapterCourse, arrayAdapterGr;
     private SerializableScheduleData serializableScheduleData;
     private NavigationView navigationView;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spFaculty = (Spinner) findViewById(R.id.spFaculty);
         spGroup = (Spinner) findViewById(R.id.spGroup);
         spCourse = (Spinner) findViewById(R.id.spCourse);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar3);
+        progressBar.setVisibility(View.GONE);
 
         spFaculty.setEnabled(false);
         spGroup.setEnabled(false);
@@ -188,23 +192,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
                     CurrentSettings.getInstance().week = week;
             }
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try
-                    {
-                        FileOutputStream fos = getApplicationContext().openFileOutput(currentSettingsFileName, Context.MODE_PRIVATE);
-                        ObjectOutputStream os = new ObjectOutputStream(fos);
-                        os.writeObject(CurrentSettings.getInstance());
-                        os.close();
-                        fos.close();
-                    }
-                    catch (Exception exception)
-                    {
-                        Log.d("Exception: ", exception.getMessage());
-                    }
-                }
-            }).start();
+            DataSerializeController.getInstance(getApplicationContext()).serializeCurrentSettings(this);
+            progressBar.setVisibility(View.VISIBLE);
         }
     }
 
@@ -301,5 +290,19 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void update(Observable observable, Object data) {
+        String inf = (String) data;
+
+        if (inf.equals("serializeCurrentSettings")){
+            DataWebController.getInstance(getApplicationContext()).downloadScheduleToCurrentSettings(this);
+        }
+        else if (inf.equals("downloadScheduleToCurrentSettings")){
+            progressBar.setVisibility(View.GONE);
+            Intent intent = new Intent(this, ScheduleActivity.class);
+            startActivity(intent);
+        }
     }
 }

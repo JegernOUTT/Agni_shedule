@@ -3,6 +3,7 @@ package com.example.hellb.agni.serializible.scheduleData;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.hellb.agni.serializible.CurrentSettings;
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
 import com.koushikdutta.async.future.FutureCallback;
@@ -72,7 +73,14 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
         {
             if (result != null)
             {
-                Document document = Jsoup.parse(InputStreamToStringWin1251.toStr(result));
+                String file = InputStreamToStringWin1251.toStr(result);
+                if (file.contains("Данные для построения отсутствуют..."))
+                {
+                    createEmptyLesson();
+                    return;
+                }
+                Document document = Jsoup.parse(file);
+
                 Element table = document.getElementsByClass("slt").first();
                 Elements rowElements = table.getElementsByTag("th"), lessons = new Elements(),
                         tr = table.getElementsByTag("tr");
@@ -115,23 +123,31 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
                     {
                         Elements finalLessons = lessonsByDay.get(j).getElementsByTag("td");
                         finalLessons.remove(0);
-                        for (Element element: finalLessons)
+                        if (finalLessons.size() == 3)
                         {
-                            if (! element.html().isEmpty())
+                            Elements elements = finalLessons.get(0).getElementsByTag("span");
+                            if (elements.size() == 7){
+                                getLessonFrom7Span(times, days, i, j, elements);
+                            } else if (elements.size() == 6)
                             {
-                                if (element.html().indexOf("slt_gr_wl") == -1)
+                                getLessonFrom6Span(times, days, i, j, elements);
+                            }
+                        }
+                        else
+                        {
+                            for (Element element: finalLessons)
+                            {
+                                if (! element.html().isEmpty())
                                 {
                                     this.lessons.add(getLesson(times, days, i, j, element));
-                                }
-                                else
-                                {
-
                                 }
                             }
                         }
                     }
                 }
             }
+
+            CurrentSettings settings = CurrentSettings.getInstance();
 
             setChanged();
             notifyObservers(this);
@@ -141,6 +157,81 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
         catch (Exception ex){
             Log.d(ex.getMessage(), ex.getLocalizedMessage());
         }
+    }
+
+    private void createEmptyLesson() {
+        lessons.add(Lesson.newBuilder()
+                .setCurrentDay("Понедельник")
+                .setName("", "Данные для построения отсутствуют")
+                .setCurrentPair(0, "")
+                .setauditoryNumber("")
+                .setCurrentHalfGroup(1, "")
+                .setPairType("","")
+                .setTeacherName("","")
+                .build());
+
+        setChanged();
+        notifyObservers(this);
+        deleteObservers();
+        isReady = true;
+    }
+
+    private void getLessonFrom7Span(ArrayList<String> times, ArrayList<String> days, int i, int j, Elements elements) {
+        Lesson.Builder builder1 = Lesson.newBuilder();
+        Lesson.Builder builder2 = Lesson.newBuilder();
+
+        this.lessons.add(builder1.setCurrentPair(i, times.get(i))
+                .setCurrentDay(days.get(j))
+                .setName(elements.get(0).text(),
+                        elements.get(0).attr("title"))
+                .setPairType(elements.get(1).text(),
+                        elements.get(1).attr("title"))
+                .setauditoryNumber(elements.get(2).text())
+                .setTeacherName(elements.get(3).text(),
+                        elements.get(3).attr("title"))
+                .setCurrentHalfGroup(1, "1")
+                .build());
+
+        this.lessons.add(builder2.setCurrentPair(i, times.get(i))
+                .setCurrentDay(days.get(j))
+                .setName(elements.get(0).getElementsByTag("span").get(0).text(),
+                        elements.get(0).getElementsByTag("span").get(0).attr("title"))
+                .setPairType(elements.get(4).text(),
+                        elements.get(4).attr("title"))
+                .setauditoryNumber(elements.get(5).text())
+                .setTeacherName(elements.get(6).text(),
+                        elements.get(6).attr("title"))
+                .setCurrentHalfGroup(2, "2")
+                .build());
+    }
+
+    private void getLessonFrom6Span(ArrayList<String> times, ArrayList<String> days, int i, int j, Elements elements) {
+        Lesson.Builder builder1 = Lesson.newBuilder();
+        Lesson.Builder builder2 = Lesson.newBuilder();
+
+        this.lessons.add(builder1.setCurrentPair(i, times.get(i))
+                .setCurrentDay(days.get(j))
+                .setName(elements.get(0).text(),
+                        elements.get(0).attr("title"))
+                .setPairType(elements.get(1).text(),
+                        elements.get(1).attr("title"))
+                .setauditoryNumber(elements.get(2).text())
+                .setTeacherName(elements.get(3).text(),
+                        elements.get(3).attr("title"))
+                .setCurrentHalfGroup(1, "1")
+                .build());
+
+        this.lessons.add(builder2.setCurrentPair(i, times.get(i))
+                .setCurrentDay(days.get(j))
+                .setName(elements.get(0).getElementsByTag("span").get(0).text(),
+                        elements.get(0).getElementsByTag("span").get(0).attr("title"))
+                .setPairType(elements.get(1).text(),
+                        elements.get(1).attr("title"))
+                .setauditoryNumber(elements.get(4).text())
+                .setTeacherName(elements.get(5).text(),
+                        elements.get(5).attr("title"))
+                .setCurrentHalfGroup(2, "2")
+                .build());
     }
 
     private Lesson getLesson(ArrayList<String> times, ArrayList<String> days, int i, int j, Element element) {
@@ -155,7 +246,7 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
         }
         return Lesson.newBuilder()
                 .setCurrentPair(i, times.get(i))
-                .setCurrentDay(j, days.get(i))
+                .setCurrentDay(days.get(j))
                 .setName(element.getElementsByTag("span").get(0).text(),
                         element.getElementsByTag("span").get(0).attr("title"))
                 .setPairType(element.getElementsByTag("span").get(1).text(),
