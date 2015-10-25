@@ -12,80 +12,98 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="80dp"
         android:weightSum="1"
         android:id="@+id/linearLayout1">
 
         <TextView
-            android:layout_width="120dp"
+            android:layout_width="100dp"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Факультет:"
             android:id="@+id/tvFaculty"
-            android:elegantTextHeight="false" />
+            android:elegantTextHeight="false"
+            android:gravity="center|left"
+            android:textStyle="bold" />
 
         <Spinner
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:id="@+id/spFaculty"
-        android:spinnerMode="dropdown"
-            style="@style/AlertDialog.AppCompat.Light" />
+            android:spinnerMode="dropdown" />
     </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="80dp"
         android:layout_below="@+id/linearLayout1"
         android:id="@+id/linearLayout2"
         android:layout_alignParentStart="true">
 
         <TextView
-            android:layout_width="120dp"
-            android:layout_height="50dp"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Курс:"
-            android:id="@+id/tvCourse" />
+            android:id="@+id/tvCourse"
+            android:gravity="center|left"
+            android:textStyle="bold" />
 
         <Spinner
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:id="@+id/spCourse"
-            android:layout_weight="1"
             android:spinnerMode="dropdown" />
     </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="80dp"
         android:layout_below="@+id/linearLayout2"
         android:layout_alignParentStart="true"
-        android:id="@+id/linearLayout">
+        android:id="@+id/linearLayout3">
 
         <TextView
-            android:layout_width="120dp"
-            android:layout_height="50dp"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Группа:"
-            android:id="@+id/tvGroup" />
+            android:id="@+id/tvGroup"
+            android:gravity="center|left"
+            android:textStyle="bold" />
 
         <Spinner
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:id="@+id/spGroup"
-            android:layout_weight="1"
             android:spinnerMode="dropdown" />
     </LinearLayout>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Сохранить настройки"
-        android:id="@+id/btnSave"
-        android:layout_below="@+id/linearLayout"
-        android:layout_alignEnd="@+id/linearLayout"
-        android:onClick="btnSaveClick" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_below="@+id/linearLayout3"
+        android:layout_alignParentStart="true"
+        android:id="@+id/linearLayout4" >
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Подгруппа:"
+            android:id="@+id/textView2"
+            android:gravity="center|left"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/spHalfGroup"
+            android:spinnerMode="dropdown" />
+    </LinearLayout>
 
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"

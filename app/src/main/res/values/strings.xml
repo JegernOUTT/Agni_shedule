@@ -1,10 +1,9 @@
 <resources>
-    <string name="app_name">Agni</string>
+    <string name="app_name">Расписание</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="navigation_drawer_open">Открыть навигационное меню</string>
+    <string name="navigation_drawer_close">Закрыть навигационное меню</string>
 
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_schedule">ScheduleActivity</string>
-    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="action_settings">Настройки</string>
+    <string name="title_activity_schedule">Расписание</string>
 </resources>

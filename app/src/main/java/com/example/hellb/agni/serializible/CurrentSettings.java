@@ -4,6 +4,7 @@ import com.example.hellb.agni.serializible.scheduleData.Course;
 import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.example.hellb.agni.serializible.scheduleData.Group;
 import com.example.hellb.agni.serializible.scheduleData.Week;
+import com.example.hellb.agni.serializible.scheduleEnums.HalfGroup;
 
 import java.io.Serializable;
 
@@ -15,6 +16,7 @@ public class CurrentSettings implements Serializable {
     public Course course;
     public Group group;
     public Week week;
+    public HalfGroup halfGroup;
     public boolean isLoaded;
 
     private static CurrentSettings ourInstance = new CurrentSettings();

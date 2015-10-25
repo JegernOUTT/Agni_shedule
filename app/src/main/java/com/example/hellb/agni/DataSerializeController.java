@@ -13,6 +13,7 @@ import com.example.hellb.agni.serializible.scheduleData.Week;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Observable;
@@ -51,17 +52,24 @@ public class DataSerializeController extends Observable{
             @Override
             protected Observer doInBackground(Observer... params) {
                 FileInputStream fis = null;
+                ObjectInputStream is = null;
                 try {
                     fis = context.openFileInput(currentSettingsFileName);
-                    ObjectInputStream is = new ObjectInputStream(fis);
+                    is = new ObjectInputStream(fis);
                     CurrentSettings.setInstance((CurrentSettings) is.readObject());
                     is.close();
                     fis.close();
+                    implementRealModel();
                 } catch (Exception exception) {
-                    Log.d("Exception: ", exception.getMessage());
+                    Log.e("Exception: ", exception.getMessage());
+                    try {
+                        is.close();
+                        fis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return params[0];
                 }
-                implementRealModel();
-
                 return params[0];
             }
 
@@ -97,6 +105,8 @@ public class DataSerializeController extends Observable{
                         CurrentSettings.getInstance().week = week;
                     }
                 }
+
+
 
                 CurrentSettings.getInstance().isLoaded = true;
             }

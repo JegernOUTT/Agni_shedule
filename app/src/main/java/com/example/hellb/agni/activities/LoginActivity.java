@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hellb.agni.DataSerializeController;
@@ -28,6 +29,7 @@ import com.example.hellb.agni.serializible.scheduleData.Faculty;
 import com.example.hellb.agni.serializible.scheduleData.Group;
 import com.example.hellb.agni.serializible.scheduleData.SerializableScheduleData;
 import com.example.hellb.agni.serializible.scheduleData.Week;
+import com.example.hellb.agni.serializible.scheduleEnums.HalfGroup;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -37,9 +39,11 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
     static String currentSettingsFileName = "currentSettings.dat";
     private volatile boolean isLoaded;
-    private Spinner spFaculty, spGroup, spCourse;
-    private ArrayAdapter<String> arrayAdapterFac, arrayAdapterCourse, arrayAdapterGr;
+    private Spinner spFaculty, spGroup, spCourse, spHalfGroup;
+    private ArrayAdapter<String> arrayAdapterFac, arrayAdapterCourse, arrayAdapterGr,
+            arrayAdapterHalfGroup;
     private SerializableScheduleData serializableScheduleData;
+    private TextView tvNavFac, tvNavGroup;
     private NavigationView navigationView;
     ProgressBar progressBar;
 
@@ -51,23 +55,31 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         NavigationCreate();
         isLoaded = false;
 
+        tvNavFac = (TextView) findViewById(R.id.tvNavFaculty);
+        tvNavGroup = (TextView) findViewById(R.id.tvNavGroup);
+
         spFaculty = (Spinner) findViewById(R.id.spFaculty);
         spGroup = (Spinner) findViewById(R.id.spGroup);
         spCourse = (Spinner) findViewById(R.id.spCourse);
+        spHalfGroup = (Spinner) findViewById(R.id.spHalfGroup);
+
         progressBar = (ProgressBar) findViewById(R.id.progressBar3);
         progressBar.setVisibility(View.GONE);
 
         spFaculty.setEnabled(false);
         spGroup.setEnabled(false);
         spCourse.setEnabled(false);
+        spHalfGroup.setEnabled(false);
 
         spFaculty.setOnItemSelectedListener(this);
         spCourse.setOnItemSelectedListener(this);
         spGroup.setOnItemSelectedListener(this);
+        spHalfGroup.setOnItemSelectedListener(this);
 
         serializableScheduleData = SerializableScheduleData.getInstance();
 
         loadSpinnerFaculty();
+        navigationBarLoad();
     }
 
     @Override
@@ -84,8 +96,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(view, "Загрузка расписания", Snackbar.LENGTH_LONG)
+                        .setAction("Загрузка расписания", null).show();
+                btnSaveClick(view);
             }
         });
 
@@ -103,9 +116,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         String[] arr = serializableScheduleData.getStringRepresentationFaculties();
 
         arrayAdapterFac = new ArrayAdapter<String>(getApplicationContext(),
-                android.R.layout.simple_spinner_item, arr);
+                R.layout.spinner_layout, arr);
         spFaculty.setAdapter(arrayAdapterFac);
-        spFaculty.setPrompt("Выберите факультет...");
+        spFaculty.setPrompt("Выберите факультет");
 
         spFaculty.setEnabled(true);
 
@@ -125,9 +138,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         String[] arr =  faculty.getStringRepresentationCourses();
 
         arrayAdapterCourse = new ArrayAdapter<String>(getApplicationContext(),
-                android.R.layout.simple_spinner_dropdown_item, arr);
+                R.layout.spinner_layout, arr);
         spCourse.setAdapter(arrayAdapterCourse);
-        spCourse.setPrompt("Выберите курс...");
+        spCourse.setPrompt("Выберите курс");
 
         spCourse.setEnabled(true);
 
@@ -148,9 +161,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     private void loadSpinnerGroup(Course course) {
         String[] arr = course.getStringRepresentationGroups();
         arrayAdapterGr = new ArrayAdapter<String>(getApplicationContext(),
-                android.R.layout.simple_spinner_item, arr);
+                R.layout.spinner_layout, arr);
         spGroup.setAdapter(arrayAdapterGr);
-        spGroup.setPrompt("Выберите группу...");
+        spGroup.setPrompt("Выберите группу");
 
         spGroup.setEnabled(true);
 
@@ -168,10 +181,42 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         }
     }
 
+    private void loadSpinnerHalfGroup() {
+        String[] arr = {"Первая подгруппа", "Вторая подгруппа", "Все подгруппы"};
+        arrayAdapterHalfGroup = new ArrayAdapter<String>(getApplicationContext(),
+                R.layout.spinner_layout, arr);
+        spHalfGroup.setAdapter(arrayAdapterHalfGroup);
+        spHalfGroup.setPrompt("Выберите подгруппу");
+
+        spHalfGroup.setEnabled(true);
+
+        if (!isLoaded)
+        {
+            if (CurrentSettings.getInstance().isLoaded) {
+                for(int i = 0; i < arrayAdapterHalfGroup.getCount(); ++i)
+                {
+                    if (CurrentSettings.getInstance().halfGroup.equals(HalfGroup.FIRST_HALF_GROUP))
+                    {
+                        spHalfGroup.setSelection(0, true);
+                    }
+                    else if (CurrentSettings.getInstance().halfGroup.equals(HalfGroup.SECOND_HALF_GROUP))
+                    {
+                        spHalfGroup.setSelection(1, true);
+                    }
+                    else if (CurrentSettings.getInstance().halfGroup.equals(HalfGroup.COMMON_HALF_GROUP))
+                    {
+                        spHalfGroup.setSelection(2, true);
+                    }
+                }
+            }
+        }
+    }
+
     public void btnSaveClick(View view) {
         if (spFaculty.getSelectedItem() == null ||
                 spCourse.getSelectedItem().toString().equals("Нет данных") ||
-                spGroup.getSelectedItem().toString().equals("Нет данных"))
+                spGroup.getSelectedItem().toString().equals("Нет данных") ||
+                spHalfGroup.getSelectedItem().toString().equals("Нет данных"))
         {
             Toast.makeText(getApplicationContext(), "Вы должны выбрать все параметры", Toast.LENGTH_LONG).show();
         }
@@ -183,6 +228,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
                     CurrentSettings.getInstance().faculty.getObjectByString((String) spCourse.getSelectedItem());
             CurrentSettings.getInstance().group = (Group)
                     CurrentSettings.getInstance().course.getObjectByString((String) spGroup.getSelectedItem());
+
+            CurrentSettings.getInstance().halfGroup = (HalfGroup)HalfGroup.values()[spHalfGroup.getSelectedItemPosition()];
 
             CurrentSettings.getInstance().isLoaded = true;
 
@@ -225,6 +272,9 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
                         }
                     }
                 }
+
+            case R.id.spGroup:
+                loadSpinnerHalfGroup();
 
                 break;
         }
@@ -297,12 +347,21 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         String inf = (String) data;
 
         if (inf.equals("serializeCurrentSettings")){
+            CurrentSettings.getInstance().week.schedule.clearLessons();
             DataWebController.getInstance(getApplicationContext()).downloadScheduleToCurrentSettings(this);
         }
         else if (inf.equals("downloadScheduleToCurrentSettings")){
-            progressBar.setVisibility(View.GONE);
             Intent intent = new Intent(this, ScheduleActivity.class);
             startActivity(intent);
+            progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    private void navigationBarLoad() {
+        if (CurrentSettings.getInstance().isLoaded)
+        {
+            tvNavFac.setText("Факультет: " + CurrentSettings.getInstance().faculty.toString());
+            tvNavGroup.setText("Группа: " + CurrentSettings.getInstance().group.toString());
         }
     }
 }

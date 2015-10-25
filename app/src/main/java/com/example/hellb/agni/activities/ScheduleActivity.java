@@ -16,14 +16,16 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.adapters.ScheduleAdapter;
@@ -31,12 +33,15 @@ import com.example.hellb.agni.serializible.CurrentSettings;
 import com.example.hellb.agni.serializible.scheduleData.Lesson;
 import com.example.hellb.agni.serializible.scheduleData.Schedule;
 import com.example.hellb.agni.serializible.scheduleEnums.DaysOfWeek;
+import com.example.hellb.agni.serializible.scheduleEnums.HalfGroup;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 
 public class ScheduleActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener {
+
+    private TextView tvNavFac, tvNavGroup;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -58,12 +63,17 @@ public class ScheduleActivity extends AppCompatActivity implements
     protected void onStart() {
         super.onStart();
         navigationView.setCheckedItem(R.id.nav_schedule);
+        navigationBarLoad();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule);
+
+        tvNavFac = (TextView) findViewById(R.id.tvNavFaculty);
+        tvNavGroup = (TextView) findViewById(R.id.tvNavGroup);
+
         notificationCreate();
     }
 
@@ -224,7 +234,8 @@ public class ScheduleActivity extends AppCompatActivity implements
          */
         private static final String ARG_SECTION = "section";
         private ProgressBar progressBar;
-        private ListView listView;
+        //private ListView listView;
+        private RecyclerView recyclerView;
         private DaysOfWeek currentDay;
 
         /**
@@ -246,7 +257,8 @@ public class ScheduleActivity extends AppCompatActivity implements
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
-            listView = (ListView)rootView.findViewById(R.id.listView);
+            //listView = (ListView)rootView.findViewById(R.id.listView);
+            recyclerView = (RecyclerView)rootView.findViewById(R.id.listView);
             progressBar = (ProgressBar)rootView.findViewById((R.id.progressBar2));
 
             for (DaysOfWeek value: DaysOfWeek.values())
@@ -263,25 +275,41 @@ public class ScheduleActivity extends AppCompatActivity implements
         @Override
         public void onStart() {
             super.onStart();
-            scheduleOnFragment(listView, currentDay, getContext());
+
+            scheduleOnFragment(recyclerView, currentDay, getContext());
         }
 
-        private void scheduleOnFragment(ListView listView, DaysOfWeek currentDay, Context context) {
+        private void scheduleOnFragment(RecyclerView recyclerView1, DaysOfWeek currentDay, Context context) {
             if (currentDay != null)
             {
                 ArrayList<Lesson> lessons = new ArrayList<Lesson>();
+                lessons.clear();
                 for (Lesson lesson: CurrentSettings.getInstance().week.schedule.getLessons())
                 {
-                    if (lesson.getCurrentDay().second.compareTo(currentDay) == 0)
+                    if (lesson.getCurrentDay().second.compareTo(currentDay) == 0 &&
+                            (lesson.getCurrentHalfGroup().second.equals(CurrentSettings.getInstance().halfGroup) ||
+                                    (lesson.getCurrentHalfGroup().second.equals(HalfGroup.COMMON_HALF_GROUP))))
                     {
                         lessons.add(lesson);
                     }
                 }
 
                 ScheduleAdapter scheduleAdapter = new ScheduleAdapter(context, lessons);
-
-                listView.setAdapter(scheduleAdapter);
+                recyclerView1.setAdapter(scheduleAdapter);
+                recyclerView1.setLayoutManager(new LinearLayoutManager(getContext()));
             }
         }
     }
+
+
+
+    private void navigationBarLoad() {
+        if (CurrentSettings.getInstance().isLoaded)
+        {
+            tvNavFac.setText("Факультет: " + CurrentSettings.getInstance().faculty.toString());
+            tvNavGroup.setText("Группа: " + CurrentSettings.getInstance().group.toString());
+        }
+    }
 }
+
+

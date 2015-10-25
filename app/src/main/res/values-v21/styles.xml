@@ -4,10 +4,5 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:spinnerDropDownItemStyle">@style/mySpinnerItemStyleV21</item>
-    </style>
-
-    <style name="mySpinnerItemStyleV21" parent="Widget.AppCompat.Spinner">
-        <item name="android:textColor">@color/my_spinner_text_color</item>
     </style>
 </resources>

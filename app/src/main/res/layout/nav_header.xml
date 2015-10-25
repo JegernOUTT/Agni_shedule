@@ -11,14 +11,14 @@
 
     <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:src="@android:drawable/sym_def_app_icon" android:id="@+id/imageView" />
+        android:src="@android:drawable/sym_def_app_icon" android:id="@+id/ivMainIcon" />
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing" android:text="Факультет"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:id="@+id/Группа" />
+        android:id="@+id/tvNavFaculty" />
 
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Группа" android:id="@+id/textView" />
+        android:text="Группа" android:id="@+id/tvNavGroup" />
 
 </LinearLayout>

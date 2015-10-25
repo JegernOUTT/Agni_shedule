@@ -12,6 +12,7 @@ import com.koushikdutta.ion.Ion;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.io.InputStream;
@@ -32,6 +33,10 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
 
     public ArrayList<Lesson> getLessons() {
         return lessons;
+    }
+
+    public void clearLessons(){
+        lessons.clear();
     }
 
     public Schedule() {
@@ -74,14 +79,14 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
             if (result != null)
             {
                 String file = InputStreamToStringWin1251.toStr(result);
-                if (file.contains("Данные для построения отсутствуют..."))
+                Document document = Jsoup.parse(file);
+
+                Element table = document.getElementsByClass("slt").first();
+                if (table == null)
                 {
                     createEmptyLesson();
                     return;
                 }
-                Document document = Jsoup.parse(file);
-
-                Element table = document.getElementsByClass("slt").first();
                 Elements rowElements = table.getElementsByTag("th"), lessons = new Elements(),
                         tr = table.getElementsByTag("tr");
                 ArrayList<String> times = new ArrayList<String>(), days = new ArrayList<String>();
@@ -155,7 +160,7 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
             isReady = true;
         }
         catch (Exception ex){
-            Log.d(ex.getMessage(), ex.getLocalizedMessage());
+            Log.e(ex.getMessage(), ex.getLocalizedMessage());
         }
     }
 
@@ -165,7 +170,7 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
                 .setName("", "Данные для построения отсутствуют")
                 .setCurrentPair(0, "")
                 .setauditoryNumber("")
-                .setCurrentHalfGroup(1, "")
+                .setCurrentHalfGroup(3, "")
                 .setPairType("","")
                 .setTeacherName("","")
                 .build());
@@ -235,25 +240,25 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
     }
 
     private Lesson getLesson(ArrayList<String> times, ArrayList<String> days, int i, int j, Element element) {
-        String group;
-        if (element.html().indexOf("</span> /") != -1)
+        String group = "3";
+        for (TextNode node: element.textNodes())
         {
-            group = element.html().substring(element.html().indexOf("</span> /") + 10, element.html().indexOf("<br />"));
+            if (node.text().contains("/ "))
+            {
+                group = node.text().replaceAll("[{/ }]+", "");
+            }
         }
-        else
-        {
-            group = "1";
-        }
+
         return Lesson.newBuilder()
                 .setCurrentPair(i, times.get(i))
                 .setCurrentDay(days.get(j))
-                .setName(element.getElementsByTag("span").get(0).text(),
-                        element.getElementsByTag("span").get(0).attr("title"))
+                .setName(element.getElementsByTag("span").first().text(),
+                        element.getElementsByTag("span").first().attr("title"))
                 .setPairType(element.getElementsByTag("span").get(1).text(),
                         element.getElementsByTag("span").get(1).attr("title"))
                 .setauditoryNumber(element.getElementsByClass("aud_number").text())
-                .setTeacherName(element.getElementsByTag("span").get(3).text(),
-                        element.getElementsByTag("span").get(3).attr("title"))
+                .setTeacherName(element.getElementsByTag("span").last().text(),
+                        element.getElementsByTag("span").last().attr("title"))
                 .setCurrentHalfGroup(Integer.parseInt(group), group)
                 .build();
     }
