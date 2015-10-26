@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/progressBar"
         android:indeterminate="true"
-        android:indeterminateTintMode="src_over"
+        android:indeterminateTintMode="src_in"
         android:indeterminateTint="@color/colorAccent"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />

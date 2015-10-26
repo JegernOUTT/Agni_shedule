@@ -19,9 +19,9 @@ public class ScrollAwareFABBehavior extends FloatingActionButton.Behavior {
         super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed,
                 dyUnconsumed);
 
-        if (dyConsumed > 0 && child.getVisibility() == View.VISIBLE) {
+        if (dyUnconsumed > 0 && child.getVisibility() == View.VISIBLE) {
             child.hide();
-        } else if (dyConsumed < 0 && child.getVisibility() != View.VISIBLE) {
+        } else if (dyUnconsumed < 0 && child.getVisibility() != View.VISIBLE) {
             child.show();
         }
     }
