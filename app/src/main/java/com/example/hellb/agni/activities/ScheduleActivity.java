@@ -288,7 +288,8 @@ public class ScheduleActivity extends AppCompatActivity implements
                 {
                     if (lesson.getCurrentDay().second.compareTo(currentDay) == 0 &&
                             (lesson.getCurrentHalfGroup().second.equals(CurrentSettings.getInstance().halfGroup) ||
-                                    (lesson.getCurrentHalfGroup().second.equals(HalfGroup.COMMON_HALF_GROUP))))
+                                    (lesson.getCurrentHalfGroup().second.equals(HalfGroup.COMMON_HALF_GROUP)) ||
+                            (CurrentSettings.getInstance().halfGroup.equals(HalfGroup.COMMON_HALF_GROUP))))
                     {
                         lessons.add(lesson);
                     }
@@ -300,8 +301,6 @@ public class ScheduleActivity extends AppCompatActivity implements
             }
         }
     }
-
-
 
     private void navigationBarLoad() {
         if (CurrentSettings.getInstance().isLoaded)

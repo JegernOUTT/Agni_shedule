@@ -31,7 +31,8 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="172dp"
         android:textColor="@android:color/white"
-        android:textSize="50dp" />
+        android:textSize="50dp"
+        android:autoText="false" />
 
     <TextView
         android:layout_width="wrap_content"
