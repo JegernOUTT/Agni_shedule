@@ -7,6 +7,7 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -35,7 +36,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class LoginActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener,
-        NavigationView.OnNavigationItemSelectedListener, Observer {
+        NavigationView.OnNavigationItemSelectedListener, Observer, SwipeRefreshLayout.OnRefreshListener {
 
     static String currentSettingsFileName = "currentSettings.dat";
     private volatile boolean isLoaded;
@@ -43,6 +44,7 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     private ArrayAdapter<String> arrayAdapterFac, arrayAdapterCourse, arrayAdapterGr,
             arrayAdapterHalfGroup;
     private SerializableScheduleData serializableScheduleData;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private TextView tvNavFac, tvNavGroup;
     private NavigationView navigationView;
     ProgressBar progressBar;
@@ -54,6 +56,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
 
         NavigationCreate();
         isLoaded = false;
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayoutRegister);
 
         tvNavFac = (TextView) findViewById(R.id.tvNavFaculty);
         tvNavGroup = (TextView) findViewById(R.id.tvNavGroup);
@@ -71,6 +75,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
         spCourse.setEnabled(false);
         spHalfGroup.setEnabled(false);
 
+        swipeRefreshLayout.setOnRefreshListener(this);
+
         spFaculty.setOnItemSelectedListener(this);
         spCourse.setOnItemSelectedListener(this);
         spGroup.setOnItemSelectedListener(this);
@@ -86,6 +92,14 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     protected void onStart() {
         super.onStart();
         navigationView.setCheckedItem(R.id.nav_enter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (! CurrentSettings.getInstance().isLoaded){
+            navigationView.setEnabled(false);
+        }
     }
 
     private void NavigationCreate() {
@@ -213,6 +227,8 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
     }
 
     public void btnSaveClick(View view) {
+        navigationView.setEnabled(true);
+
         if (spFaculty.getSelectedItem() == null ||
                 spCourse.getSelectedItem().toString().equals("Нет данных") ||
                 spGroup.getSelectedItem().toString().equals("Нет данных") ||
@@ -336,6 +352,11 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
             Intent intent = new Intent(this, ScheduleActivity.class);
             startActivity(intent);
         }
+        else if (id == R.id.nav_contact)
+        {
+            Intent intent = new Intent(this, ContactActivity.class);
+            startActivity(intent);
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -355,6 +376,14 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
             startActivity(intent);
             progressBar.setVisibility(View.GONE);
         }
+        else if (inf.equals("downloadModelToCurrentSettings")){
+            DataSerializeController.getInstance(getApplicationContext()).serializeModel(this);
+        }
+        else if (inf.equals("serializeModel")){
+            loadSpinnerFaculty();
+            navigationBarLoad();
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     private void navigationBarLoad() {
@@ -363,5 +392,12 @@ public class LoginActivity extends AppCompatActivity implements AdapterView.OnIt
             tvNavFac.setText("Факультет: " + CurrentSettings.getInstance().faculty.toString());
             tvNavGroup.setText("Группа: " + CurrentSettings.getInstance().group.toString());
         }
+    }
+
+    @Override
+    public void onRefresh() {
+        SerializableScheduleData.getInstance().clear();
+
+        DataWebController.getInstance(getApplicationContext()).downloadModelToCurrentSettings(this);
     }
 }

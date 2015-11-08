@@ -2,11 +2,14 @@ package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.example.hellb.agni.DataGetStack;
+import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
 import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.async.http.socketio.ExceptionCallback;
 import com.koushikdutta.ion.Ion;
 
 import org.jsoup.Jsoup;
@@ -28,6 +31,7 @@ public class SerializableScheduleData extends Observable implements DataProcess,
         Cloneable {
     private static final long serialVersionUID = 1L;
     public String sheduleUrl = "http://is.agni-rt.ru:8080/schedule/";
+    private transient Context context;
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -96,6 +100,7 @@ public class SerializableScheduleData extends Observable implements DataProcess,
     @Override
     public void processData(Context cont, Observer observer) {
         addObserver(observer);
+        this.context = cont;
 
         Ion.with(cont)
                 .load(sheduleUrl)
@@ -119,11 +124,16 @@ public class SerializableScheduleData extends Observable implements DataProcess,
 
                 addFaculty(new Faculty(Integer.parseInt(str.substring(start, end)), link.text()));
             }
-        }
 
-        for (Faculty faculty: faculties)
+            for (Faculty faculty: faculties)
+            {
+                DataGetStack.getInstance().addTask(faculty);
+            }
+        }
+        else
         {
-            DataGetStack.getInstance().addTask(faculty);
+            Toast.makeText(context, R.string.connection_error, Toast.LENGTH_SHORT).show();
+            DataGetStack.getInstance().clearStack();
         }
 
         setChanged();
@@ -141,5 +151,13 @@ public class SerializableScheduleData extends Observable implements DataProcess,
             }
         }
         return null;
+    }
+
+    public void clear() {
+        for (Faculty faculty: faculties)
+        {
+            faculty.clear();
+        }
+        faculties.clear();
     }
 }

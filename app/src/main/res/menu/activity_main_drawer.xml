@@ -2,14 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/nav_enter" android:icon="@android:drawable/ic_menu_camera"
+        <item android:id="@+id/nav_enter" android:icon="@drawable/ic_account"
             android:title="Войти" />
     </group>
 
     <item android:title="Функции">
         <menu>
-            <item android:id="@+id/nav_schedule" android:icon="@android:drawable/ic_menu_share"
+            <item android:id="@+id/nav_schedule" android:icon="@drawable/ic_school"
                 android:title="Расписание" />
+            <item android:id="@+id/nav_contact" android:icon="@drawable/ic_message_text_outline"
+                android:title="Контакты" />
         </menu>
     </item>
 

@@ -1,5 +1,6 @@
 package com.example.hellb.agni.serializible.scheduleData;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
@@ -74,5 +75,13 @@ public class Course implements Serializable, Cloneable {
             }
         }
         return null;
+    }
+
+    public void clear() {
+        for (Group group: groups)
+        {
+            group.clear();
+        }
+        groups.clear();
     }
 }

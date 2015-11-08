@@ -9,111 +9,122 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior" tools:showIn="@layout/app_bar_login"
     tools:context=".LoginActivity">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:weightSum="1"
-        android:id="@+id/linearLayout1">
-
-        <TextView
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Факультет:"
-            android:id="@+id/tvFaculty"
-            android:elegantTextHeight="false"
-            android:gravity="center|left"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/spFaculty"
-            android:spinnerMode="dropdown" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_below="@+id/linearLayout1"
-        android:id="@+id/linearLayout2"
-        android:layout_alignParentStart="true">
-
-        <TextView
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Курс:"
-            android:id="@+id/tvCourse"
-            android:gravity="center|left"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/spCourse"
-            android:spinnerMode="dropdown" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_below="@+id/linearLayout2"
-        android:layout_alignParentStart="true"
-        android:id="@+id/linearLayout3">
-
-        <TextView
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Группа:"
-            android:id="@+id/tvGroup"
-            android:gravity="center|left"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/spGroup"
-            android:spinnerMode="dropdown" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_below="@+id/linearLayout3"
-        android:layout_alignParentStart="true"
-        android:id="@+id/linearLayout4" >
-
-        <TextView
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Подгруппа:"
-            android:id="@+id/textView2"
-            android:gravity="center|left"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/spHalfGroup"
-            android:spinnerMode="dropdown" />
-    </LinearLayout>
-
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayoutRegister"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressBar3"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="38dp" />
+        android:layout_height="wrap_content">
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:weightSum="1"
+                android:id="@+id/linearLayout1">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Факультет:"
+                    android:id="@+id/tvFaculty"
+                    android:elegantTextHeight="false"
+                    android:gravity="center|left"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/spFaculty"
+                    android:spinnerMode="dropdown" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_below="@+id/linearLayout1"
+                android:id="@+id/linearLayout2"
+                android:layout_alignParentStart="true">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Курс:"
+                    android:id="@+id/tvCourse"
+                    android:gravity="center|left"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/spCourse"
+                    android:spinnerMode="dropdown" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_below="@+id/linearLayout2"
+                android:layout_alignParentStart="true"
+                android:id="@+id/linearLayout3">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Группа:"
+                    android:id="@+id/tvGroup"
+                    android:gravity="center|left"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/spGroup"
+                    android:spinnerMode="dropdown" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_below="@+id/linearLayout3"
+                android:layout_alignParentStart="true"
+                android:id="@+id/linearLayout4" >
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Подгруппа:"
+                    android:id="@+id/textView2"
+                    android:gravity="center|left"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/spHalfGroup"
+                    android:spinnerMode="dropdown" />
+            </LinearLayout>
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/progressBar3"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="38dp" />
+        </RelativeLayout>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </RelativeLayout>
 

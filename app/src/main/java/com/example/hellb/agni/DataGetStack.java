@@ -19,6 +19,7 @@ public class DataGetStack implements Observer, Runnable {
     private volatile int currentConnection;
     private static DataGetStack instance;
     private Context context;
+    private boolean isConnectionError;
 
     public static DataGetStack getInstance(int connections, Context context1) {
         if (instance == null)
@@ -32,6 +33,15 @@ public class DataGetStack implements Observer, Runnable {
         return dataProcessStack;
     }
 
+    public boolean isConnectError() {
+        if (isConnectionError)
+        {
+            isConnectionError = false;
+            return true;
+        }
+        return false;
+    }
+
     public static DataGetStack getInstance() {
         return instance;
     }
@@ -39,9 +49,16 @@ public class DataGetStack implements Observer, Runnable {
     private DataGetStack(int connections, Context context1) {
         context = context1;
         connectionCount = connections;
+        isConnectionError = false;
         dataProcessStack = new LinkedList<DataProcess>();
 
         new Thread(this).start();
+    }
+
+    public void clearStack() {
+        dataProcessStack.clear();
+        currentConnection = 0;
+        isConnectionError = true;
     }
 
     public void addTask(DataProcess dataProcess)
@@ -61,7 +78,10 @@ public class DataGetStack implements Observer, Runnable {
     @Override
     public void update(Observable observable, Object data) {
         //dataProcessStack.remove(data);
-        --currentConnection;
+        if (currentConnection > 0)
+        {
+            --currentConnection;
+        }
     }
 
     @Override

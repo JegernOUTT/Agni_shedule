@@ -39,7 +39,8 @@ public class DataWebController extends Observable{
                 try {
                     Thread.sleep(1000);
 
-                    while (!DataGetStack.getInstance().isReady())
+                    while (!DataGetStack.getInstance().isReady() &&
+                            !DataGetStack.getInstance().isConnectError())
                     {
                         Thread.sleep(500);
                     }
@@ -73,7 +74,8 @@ public class DataWebController extends Observable{
                         e.printStackTrace();
                     }
 
-                    if (DataGetStack.getInstance().isReady())
+                    if (DataGetStack.getInstance().isReady() ||
+                            DataGetStack.getInstance().isConnectError())
                     {
                         SerializableScheduleData serializableScheduleData = SerializableScheduleData.getInstance();
                         serializableScheduleData.isLoaded();

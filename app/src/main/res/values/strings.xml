@@ -6,4 +6,7 @@
 
     <string name="action_settings">Настройки</string>
     <string name="title_activity_schedule">Расписание</string>
+
+    <string name="connection_error">Нет соединения с сетью. Повторите попытку</string>
+    <string name="title_activity_contact">Контакты</string>
 </resources>

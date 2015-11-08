@@ -2,7 +2,10 @@ package com.example.hellb.agni.serializible.scheduleData;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.example.hellb.agni.DataGetStack;
+import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.CurrentSettings;
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
@@ -30,6 +33,7 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
     private ArrayList<Lesson> lessons;
     private boolean isReady;
     public Week owner;
+    private transient Context context;
 
     public ArrayList<Lesson> getLessons() {
         return lessons;
@@ -62,6 +66,7 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
     @Override
     public void processData(Context context, Observer observer) {
         addObserver(observer);
+        this.context = context;
 
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
@@ -150,6 +155,11 @@ public class Schedule extends Observable implements Serializable, DataProcess, F
                         }
                     }
                 }
+            }
+            else
+            {
+                Toast.makeText(context, R.string.connection_error, Toast.LENGTH_SHORT).show();
+                DataGetStack.getInstance().clearStack();
             }
 
             CurrentSettings settings = CurrentSettings.getInstance();

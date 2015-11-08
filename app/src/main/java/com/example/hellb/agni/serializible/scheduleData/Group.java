@@ -4,7 +4,10 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
+import com.example.hellb.agni.DataGetStack;
+import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
 import com.koushikdutta.async.future.FutureCallback;
@@ -29,6 +32,7 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
 {
     private static String postDataName = "group_id";
     private Integer postData;
+    private transient Context context;
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
@@ -90,6 +94,7 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
     @Override
     public void processData(Context context, Observer observer) {
         addObserver(observer);
+        this.context = context;
 
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
@@ -120,6 +125,11 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
 
                 isLoaded = true;
             }
+            else
+            {
+                Toast.makeText(context, R.string.connection_error, Toast.LENGTH_SHORT).show();
+                DataGetStack.getInstance().clearStack();
+            }
 
             setChanged();
             notifyObservers(this);
@@ -142,5 +152,13 @@ public class Group extends Observable implements DataProcess, FutureCallback<Inp
             }
         }
         return null;
+    }
+
+    public void clear() {
+        for (Week week: weeks)
+        {
+            week.clear();
+        }
+        weeks.clear();
     }
 }

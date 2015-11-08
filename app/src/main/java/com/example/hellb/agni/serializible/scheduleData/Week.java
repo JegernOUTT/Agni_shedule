@@ -12,7 +12,7 @@ import java.util.Observer;
 /**
  * Created by hellb on 07.10.2015.
  */
-public class Week extends Observable implements DataProcess, Serializable, Cloneable {
+public class Week extends Observable implements Serializable, Cloneable {
     private static String postDataName = "year_week_number";
     public Group owner;
     public boolean isCurrent;
@@ -20,6 +20,7 @@ public class Week extends Observable implements DataProcess, Serializable, Clone
     private String weekName;
     public volatile boolean isLoaded;
     public Schedule schedule;
+    private transient Context context;
 
     public Week(Integer post, String group) {
         postData = post;
@@ -41,12 +42,6 @@ public class Week extends Observable implements DataProcess, Serializable, Clone
     }
 
     @Override
-    public void processData(Context con, Observer observer) {
-        addObserver(observer);
-
-    }
-
-    @Override
     public boolean equals(Object o) {
         Week week = (Week) o;
         if (week.weekName.equals(this.weekName) &&
@@ -60,4 +55,7 @@ public class Week extends Observable implements DataProcess, Serializable, Clone
         return weekName;
     }
 
+    public void clear() {
+        schedule.clearLessons();
+    }
 }

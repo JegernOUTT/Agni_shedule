@@ -4,8 +4,10 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
 import com.example.hellb.agni.DataGetStack;
+import com.example.hellb.agni.R;
 import com.example.hellb.agni.serializible.DataProcess;
 import com.example.hellb.agni.serializible.InputStreamToStringWin1251;
 import com.koushikdutta.async.future.FutureCallback;
@@ -30,6 +32,7 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
     Cloneable
 {
     private static String postDataName = "faculty_id";
+    private transient Context context;
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -120,6 +123,8 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
     @Override
     public void processData(Context context,  Observer observer) {
         addObserver(observer);
+        this.context = context;
+
         Ion.with(context)
                 .load(SerializableScheduleData.getInstance().sheduleUrl)
                 .setBodyParameter(postDataName, postData.toString())
@@ -154,6 +159,11 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
                     ++i;
                     addCourse(course);
                 }
+            }
+            else
+            {
+                Toast.makeText(context, R.string.connection_error, Toast.LENGTH_SHORT).show();
+                DataGetStack.getInstance().clearStack();
             }
 
             for (Course course: courses)
@@ -208,5 +218,13 @@ public class Faculty extends Observable implements DataProcess, FutureCallback<I
             }
         }
         return null;
+    }
+
+    public void clear() {
+        for (Course course: courses)
+        {
+            course.clear();
+        }
+        courses.clear();
     }
 }

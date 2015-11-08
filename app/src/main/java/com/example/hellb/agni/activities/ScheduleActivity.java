@@ -2,6 +2,7 @@ package com.example.hellb.agni.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -10,10 +11,12 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,22 +27,30 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
+import android.view.animation.OvershootInterpolator;
 import android.widget.TextView;
 
+import com.example.hellb.agni.DataWebController;
 import com.example.hellb.agni.R;
 import com.example.hellb.agni.adapters.ScheduleAdapter;
 import com.example.hellb.agni.serializible.CurrentSettings;
 import com.example.hellb.agni.serializible.scheduleData.Lesson;
 import com.example.hellb.agni.serializible.scheduleData.Schedule;
+import com.example.hellb.agni.serializible.scheduleData.Week;
 import com.example.hellb.agni.serializible.scheduleEnums.DaysOfWeek;
 import com.example.hellb.agni.serializible.scheduleEnums.HalfGroup;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.Observable;
+import java.util.Observer;
+
+import jp.wasabeef.recyclerview.animators.LandingAnimator;
+
+import static android.support.design.widget.TabLayout.*;
 
 public class ScheduleActivity extends AppCompatActivity implements
-        NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener, OnTabSelectedListener {
 
     private TextView tvNavFac, tvNavGroup;
 
@@ -58,12 +69,47 @@ public class ScheduleActivity extends AppCompatActivity implements
      */
     private ViewPager mViewPager;
     private NavigationView navigationView;
+    private TabLayout tabLayoutWeek;
 
     @Override
     protected void onStart() {
         super.onStart();
-        navigationView.setCheckedItem(R.id.nav_schedule);
+
+        notificationCreate();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        weekLoad();
         navigationBarLoad();
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                for (int i = 0; i < tabLayoutWeek.getTabCount(); ++i)
+                {
+                    if (((Week) tabLayoutWeek.getTabAt(i).getTag()).equals(CurrentSettings.getInstance().week))
+                    {
+                        int right = ((ViewGroup) tabLayoutWeek.getChildAt(0)).getChildAt(i).getRight();
+                        tabLayoutWeek.smoothScrollTo(right, 0);
+                        tabLayoutWeek.getTabAt(i).select();
+                    }
+                }
+
+            }
+        }.execute();
     }
 
     @Override
@@ -74,22 +120,26 @@ public class ScheduleActivity extends AppCompatActivity implements
         tvNavFac = (TextView) findViewById(R.id.tvNavFaculty);
         tvNavGroup = (TextView) findViewById(R.id.tvNavGroup);
 
-        notificationCreate();
+        //notificationCreate();
     }
 
     private void notificationCreate() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs_days);
+        tabLayout.setTabMode(MODE_FIXED);
+        tabLayout.setTabGravity(GRAVITY_FILL);
         tabLayout.setupWithViewPager(mViewPager);
+
+        tabLayoutWeek = (TabLayout) findViewById(R.id.tabs_week);
+        tabLayoutWeek.setTabMode(MODE_SCROLLABLE);
+        tabLayoutWeek.setTabGravity(GRAVITY_CENTER);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -99,6 +149,7 @@ public class ScheduleActivity extends AppCompatActivity implements
                         .setAction("Action", null).show();
             }
         });
+        fab.hide();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -108,6 +159,17 @@ public class ScheduleActivity extends AppCompatActivity implements
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void weekLoad() {
+        for (Week week: CurrentSettings.getInstance().group.getWeeks())
+        {
+            Tab tab = tabLayoutWeek.newTab()
+                    .setText(week.toString())
+                    .setTag(week);
+            tabLayoutWeek.addTab(tab);
+        }
+        tabLayoutWeek.setOnTabSelectedListener(this);
     }
 
     @Override
@@ -142,6 +204,11 @@ public class ScheduleActivity extends AppCompatActivity implements
         }
         else if (id == R.id.nav_schedule) {
         }
+        else if (id == R.id.nav_contact)
+        {
+            Intent intent = new Intent(this, ContactActivity.class);
+            startActivity(intent);
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -158,12 +225,65 @@ public class ScheduleActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public void onTabSelected(Tab tab) {
+        Week week = (Week) tab.getTag();
+        if (!week.equals(CurrentSettings.getInstance().week))
+        {
+            CurrentSettings.getInstance().week = week;
+
+            if (!week.schedule.isReady())
+            {
+                DataWebController.getInstance(getApplicationContext()).downloadScheduleToCurrentSettings(new Observer() {
+                    @Override
+                    public void update(Observable observable, Object data) {
+                        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+                        mViewPager = (ViewPager) findViewById(R.id.container);
+                        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+                        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs_days);
+                        tabLayout.setTabMode(MODE_FIXED);
+                        tabLayout.setTabGravity(GRAVITY_FILL);
+                        tabLayout.setupWithViewPager(mViewPager);
+                    }
+                });
+            } else
+            {
+                mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+                mViewPager = (ViewPager) findViewById(R.id.container);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+
+                TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs_days);
+                tabLayout.setTabMode(MODE_FIXED);
+                tabLayout.setTabGravity(GRAVITY_FILL);
+                tabLayout.setupWithViewPager(mViewPager);
+            }
+        }
+    }
+
+    @Override
+    public void onTabUnselected(Tab tab) {
+
+    }
+
+    @Override
+    public void onTabReselected(Tab tab) {
+
+    }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
         public Schedule currentSchedule;
+
+        @Override
+        public void notifyDataSetChanged() {
+            super.notifyDataSetChanged();
+
+        }
+
         EnumMap<DaysOfWeek, String> map;
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -227,14 +347,14 @@ public class ScheduleActivity extends AppCompatActivity implements
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
+            Observer{
         /**
          * The fragment argument representing the section number for this
          * fragment.
          */
         private static final String ARG_SECTION = "section";
-        private ProgressBar progressBar;
-        //private ListView listView;
+        private SwipeRefreshLayout swipeRefreshLayout;
         private RecyclerView recyclerView;
         private DaysOfWeek currentDay;
 
@@ -257,9 +377,28 @@ public class ScheduleActivity extends AppCompatActivity implements
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_schedule, container, false);
-            //listView = (ListView)rootView.findViewById(R.id.listView);
             recyclerView = (RecyclerView)rootView.findViewById(R.id.listView);
-            progressBar = (ProgressBar)rootView.findViewById((R.id.progressBar2));
+            swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefreshLayout);
+
+            swipeRefreshLayout.setOnRefreshListener(this);
+            swipeRefreshLayout.setDistanceToTriggerSync(350);
+
+            final LinearLayoutManager layoutParams = new LinearLayoutManager(getContext().getApplicationContext());
+            recyclerView.setLayoutManager(layoutParams);
+            recyclerView.clearOnScrollListeners();
+            recyclerView.setItemAnimator(new LandingAnimator(new OvershootInterpolator(1f)));
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                }
+
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    swipeRefreshLayout.setEnabled(layoutParams.findFirstCompletelyVisibleItemPosition() == 0);
+                }
+            });
+
 
             for (DaysOfWeek value: DaysOfWeek.values())
             {
@@ -297,7 +436,28 @@ public class ScheduleActivity extends AppCompatActivity implements
 
                 ScheduleAdapter scheduleAdapter = new ScheduleAdapter(context, lessons);
                 recyclerView1.setAdapter(scheduleAdapter);
-                recyclerView1.setLayoutManager(new LinearLayoutManager(getContext()));
+            }
+
+            goToCurrent();
+        }
+
+        private void goToCurrent() {
+            //Select current lesson
+        }
+
+        @Override
+        public void onRefresh() {
+            CurrentSettings.getInstance().week.schedule.clearLessons();
+            DataWebController.getInstance(getContext()).downloadScheduleToCurrentSettings(this);
+        }
+
+        @Override
+        public void update(Observable observable, Object data) {
+            String inf = (String) data;
+
+            if (inf.equals("downloadScheduleToCurrentSettings")){
+                scheduleOnFragment(recyclerView, currentDay, getContext());
+                swipeRefreshLayout.setRefreshing(false);
             }
         }
     }
